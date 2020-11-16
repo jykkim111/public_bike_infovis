@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <title>Project</title>
+</head>
+<body>
+  <div style="display: flex; flex-direction: column">
+    <div
+      style="display: flex; flex-direction: row; margin: 20; padding: 20"
+    ></div>
+    <div style="display: flex; flex-direction: row">
+      <div id="linechart"></div>
+      <div id="stackedbarchart"></div>
+    </div>
+  </div>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+  <script>
+    let data;
+    let aggregatedData;
+
+    let aggregateTimePerSeconds = 300;
+
+    const lineChartWidth = 1800;
+    const height = 300;
+    const margin = 30;
+
+    const lineChart = d3
+      .select("#linechart")
+      .append("svg")
+      .attr("width", lineChartWidth + margin * 2)
+      .attr("height", height + margin * 2)
+      .append("g")
+      .attr("transform", `translate(${margin}, ${margin})`);
+
+    let lineChartX, lineChartY;
+
+    main();
+
+    async function main() {
+      data = await d3.csv("data.csv");
+      initLineChart();
+    }
+
+    function dataAggregation() {
+      aggregatedData = d3
+        .nest()
+        .key(
+          (d) =>
+            parseInt(
+              Date.parse(d["대여일시"]) / (aggregateTimePerSeconds * 1000)
+            ) *
+            (aggregateTimePerSeconds * 1000)
+        )
+        .sortKeys(d3.ascending)
+        .rollup((v) => v.length)
+        .entries(data);
+      console.log(JSON.stringify(aggregatedData));
+    }
+
+    function updateLineChartAxes() {
+      lineChartX = d3
+        .scaleTime()
+        .domain(d3.extent(aggregatedData, (d) => +d.key))
+        .range([0, lineChartWidth]);
+
+      lineChartY = d3
+        .scaleLinear()
+        .domain(d3.extent(aggregatedData, (d) => d.value))
+        .range([height, 0]);
+    }
+
+    function initLineChart() {
+      dataAggregation();
+      updateLineChartAxes();
+
+      lineChart
+        .append("g")
+        .attr("id", "linechart_x")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(lineChartX));
+
+      lineChart
+        .append("g")
+        .attr("id", "linechart_y")
+        .call(d3.axisLeft(lineChartY));
+
+      lineChart
+        .append("g")
+        .attr("id", "linechart_data")
+        .selectAll("path")
+        .data([aggregatedData])
+        .enter()
+        .append("path")
+        .attr("fill", "none")
+        .attr("stroke", "#808080")
+        .attr("d", (data) =>
+          d3
+            .line()
+            .x((d) => lineChartX(+d.key))
+            .y((d) => lineChartY(+d.value))(data)
+        );
+    }
+  </script>
+</body>
