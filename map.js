@@ -22,24 +22,68 @@ function excelExportCommon(event, callback) {
         var sheetNameList = wb.SheetNames; // 시트 이름 목록 가져오기 
         var firstSheetName = sheetNameList[1]; // 첫번째 시트명
         var firstSheet = wb.Sheets[firstSheetName]; // 첫번째 시트 
-        callback(firstSheet);
+
+        let data_string = JSON.stringify(XLSX.utils.sheet_to_json(firstSheet));
+        let data_json = JSON.parse(data_string);
+        callback(data_json);
     };
     reader.readAsBinaryString(input.files[0]);
 }
 
-function handleExcelDataJson(sheet) {
-    let data_string = JSON.stringify(XLSX.utils.sheet_to_json(sheet));
-    let data_json = JSON.parse(data_string);
-
+function handleExcelDataJson(data) {
+    //=========================
+    // Draw Map
+    // input: 
+    //      선택된 자치구, 기간에 해당하는 data
+    //      json data: [{"대여소 번호", "보관소(대여소)명", "자치구", "위도", "경도", "대여량"} , {} ...]
+    //=========================
     let gangnam_bike_stations = [];
-    for (let i = 0; i < data_json.length; i++) {
-        if (data_json[i]['자치구'] == '강남구') {
-            gangnam_bike_stations.push(data_json[i]);
-        }
+    for (let i = 0; i < data.length; i++) {
+        //if (data[i]['자치구'] == '강남구') {
+            gangnam_bike_stations.push(data[i]);
+        //}
     }
 
+    console.log(data)
+
     gangnam_bike_stations.forEach(function(d) {
-        var marker = L.marker([d['위도'], d['경도']]).addTo(mymap);
+
+        var circle = L.circle([d['위도'], d['경도']],
+            {color: '#f03',
+            fillColor: '#f03',
+            weight: 0,
+            fillOpacity: 0.5,
+            radius: 50,
+            className: d['대여소'].toString()})
+            .bindTooltip("[" + d['대여소'] + "] " + d['보관소(대여소)명'],
+            {
+                permanent: false,
+                direction: 'right'
+            })
+            .addTo(mymap)
+            .on('mouseover', (event) => {event.target.setStyle({
+                                            weight: 3
+                                         });})
+            .on('mouseout', (event) => {event.target.setStyle({
+                                            weight: 0
+                                        });})
+            .on('mouseup', (event) => {if(event.target.options.color == 'green'){
+                                            event.target.setStyle({
+                                                color: 'red',
+                                                fillColor: 'red',
+                                                weight: 0
+                                            });
+                                        }
+                                        else{
+                                            console.log(event.target.options.className);
+                                            event.target.setStyle({
+                                                color: 'green',
+                                                fillColor: 'green',
+                                                weight: 3
+                                            });
+                                        }
+                                     });
+
     })
 
 
