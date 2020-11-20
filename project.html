@@ -4,7 +4,7 @@
     position: absolute;
     text-align: center;
     width: 60px;
-    height: 28px;
+    linechartheight: 28px;
     padding: 2px;
     font: 12px sans-serif;
     background: lightsteelblue;
@@ -12,19 +12,41 @@
     border-radius: 8px;
     pointer-events: none;
   }
+  #container {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+  }
+  div.row {
+    min-width: 1800px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    display: flex;
+    flex-direction: row;
+  }
+  div.components {
+    width: 300px;
+  }
+  #linechart {
+    border: 1px solid #c3c3c3;
+  }
 </style>
 <head>
   <meta charset="utf-8" />
   <title>Project</title>
 </head>
 <body>
-  <div style="display: flex; flex-direction: column">
-    <div
-      style="display: flex; flex-direction: row; margin: 20; padding: 20"
-    ></div>
-    <div style="display: flex; flex-direction: row">
+  <div id="container">
+    <div class="row">
+      <div class="components">
+        <div id="react-component"></div>
+      </div>
       <div id="linechart"></div>
-      <div id="stackedbarchart"></div>
+    </div>
+    <div class="row">
+      <div class="components">components</div>
+      <div id="map"></div>
     </div>
   </div>
   <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -40,33 +62,70 @@
   <script src="https://d3js.org/d3-transition.v2.min.js"></script>
   <script src="https://d3js.org/d3-drag.v2.min.js"></script>
   <script src="https://d3js.org/d3-brush.v2.min.js"></script>
+
+  <script
+    src="https://unpkg.com/react@17/umd/react.development.js"
+    crossorigin
+  ></script>
+  <script
+    src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+    crossorigin
+  ></script>
+
   <script>
     let data;
-    let aggregatedData;
-
+    let aggregatedDataByTime;
+    let aggregatedDataByRentedStation;
+    let aggregatedDataByReturnedStation;
     let aggregateTimePerSeconds = 600; // 10분 단위로 모음
-
-    let startTime, endTime;
-
     let lineChartXDomain;
 
-    const lineChartWidth = 1800;
-    const height = 100;
-    const margin = 30;
+    /* 
+      startTime, endTime: 선택된 시간 구간
+      1970년 1월 1일 이후의 밀리 초 수로 저장됨 (integer)
+      Date.parse로 대여일시, 반납일시 parse
+
+      aggregatedDataForMap: 각 대여소별로 선택된 시간 범위 내에서 
+      rent된 자전거 대수와 return된 자전거 대수 저장
+      대여소 번호를 key로 가지고, value는 rented와 returned를 저장한 object
+
+      aggregatedDataForMap = {
+        "10000": {
+          rented: 100,
+          returned: 102
+        },
+        "10002": {
+          rented: 201,
+          returned: 188
+        }, 
+        ...
+      }
+
+      brushing으로 선택 시간 갱신할 때마다 
+      aggregatedDataForMap, startTime, endTime 자동 갱신
+    */
+    let aggregatedDataForMap;
+    let startTime, endTime;
+
+    const lineChartWidth = 1400;
+    const lineChartHeight = 150;
+    const margin = 40;
 
     const brush = d3
       .brushX()
       .extent([
         [0, 0],
-        [lineChartWidth, height],
+        [lineChartWidth, lineChartHeight],
       ])
       .on("end", brushed);
 
     const lineChart = d3
       .select("#linechart")
+      .attr("width", lineChartWidth + margin * 2)
+      .attr("height", lineChartHeight + margin * 2)
       .append("svg")
       .attr("width", lineChartWidth + margin * 2)
-      .attr("height", height + margin * 2)
+      .attr("height", lineChartHeight + margin * 2)
       .append("g")
       .attr("transform", `translate(${margin}, ${margin})`);
 
@@ -76,17 +135,31 @@
       .attr("class", "tooltip")
       .style("opacity", 0);
 
+    var clip = lineChart
+      .append("defs")
+      .append("svg:clipPath")
+      .attr("id", "clip")
+      .append("svg:rect")
+      .attr("width", lineChartWidth)
+      .attr("height", lineChartHeight)
+      .attr("x", 0)
+      .attr("y", 0);
+
     let lineChartX, lineChartY;
 
     main();
 
     async function main() {
       data = await d3.csv("data.csv");
+      lineChartXDomain = d3.extent(data, (d) => Date.parse(d["대여일시"]));
+      [startTime, endTime] = lineChartXDomain;
+      initAggregatedData();
+      initLineChartAxes();
       initLineChart();
     }
 
-    function aggregateData() {
-      aggregatedData = d3
+    function initAggregatedData() {
+      aggregatedDataByTime = d3
         .nest()
         .key(
           (d) =>
@@ -98,13 +171,48 @@
         .sortKeys(d3.ascending)
         .rollup((v) => v.length)
         .entries(data);
+
+      aggregatedDataByRentedStation = d3
+        .nest()
+        .key((d) => d["대여 대여소번호"])
+        .rollup((v) => v.map((d) => Date.parse(d["대여일시"])))
+        .entries(data);
+
+      aggregatedDataByReturnedStation = d3
+        .nest()
+        .key((d) => d["반납대여소번호"])
+        .rollup((v) => v.map((d) => Date.parse(d["반납일시"])))
+        .entries(data);
+
+      aggregatedDataForMap = {};
+      aggregatedDataByReturnedStation.forEach((v) => {
+        aggregatedDataForMap[v.key] = {
+          rented: 0,
+          returned: 0,
+        };
+      });
+      aggregatedDataByRentedStation.forEach((v) => {
+        aggregatedDataForMap[v.key] = {
+          rented: 0,
+          returned: 0,
+        };
+      });
+    }
+
+    function aggregateDataForMap() {
+      aggregatedDataByRentedStation.forEach((v) => {
+        aggregatedDataForMap[v.key].rented = v.value.filter(
+          (date) => date >= startTime && date <= endTime
+        ).length;
+      });
+      aggregatedDataByReturnedStation.forEach((v) => {
+        aggregatedDataForMap[v.key].returned = v.value.filter(
+          (date) => date >= startTime && date <= endTime
+        ).length;
+      });
     }
 
     function initLineChartAxes() {
-      lineChartXDomain = d3.extent(aggregatedData, (d) => +d.key);
-
-      [startTime, endTime] = lineChartXDomain;
-
       lineChartX = d3
         .scaleTime()
         .domain(lineChartXDomain)
@@ -112,18 +220,15 @@
 
       lineChartY = d3
         .scaleLinear()
-        .domain(d3.extent(aggregatedData, (d) => +d.value))
-        .range([height, 0]);
+        .domain(d3.extent(aggregatedDataByTime, (d) => +d.value))
+        .range([lineChartHeight, 0]);
     }
 
     function initLineChart() {
-      aggregateData();
-      initLineChartAxes();
-
       lineChart
         .append("g")
         .attr("id", "linechart_x")
-        .attr("transform", `translate(0, ${height})`)
+        .attr("transform", `translate(0, ${lineChartHeight})`)
         .call(d3.axisBottom(lineChartX));
 
       lineChart
@@ -133,9 +238,12 @@
 
       lineChart
         .append("g")
+        .attr("width", lineChartWidth)
+        .attr("height", lineChartHeight)
         .attr("id", "linechart_data")
+        .attr("clip-path", "url(#clip)")
         .selectAll("path")
-        .data([aggregatedData])
+        .data([aggregatedDataByTime])
         .enter()
         .append("path")
         .attr("fill", "none")
@@ -149,6 +257,7 @@
       lineChart
         .on("dblclick", (event) => {
           [startTime, endTime] = lineChartXDomain;
+          aggregateDataForMap();
           lineChartX.domain(lineChartXDomain);
           lineChart
             .select("#linechart_x")
@@ -165,7 +274,7 @@
               d3
                 .line()
                 .x((d) => lineChartX(+d.key))
-                .y((d) => lineChartY(+d.value))(aggregatedData)
+                .y((d) => lineChartY(+d.value))(aggregatedDataByTime)
             );
         })
         .on("mouseover", function (event, d) {
@@ -186,12 +295,11 @@
 
     function brushed({ selection }) {
       if (!selection) return;
-      [startTime, endTime] = selection;
+      [startTime, endTime] = selection.map((v) =>
+        Date.parse(lineChartX.invert(v))
+      );
 
-      lineChartX.domain([
-        lineChartX.invert(startTime),
-        lineChartX.invert(endTime),
-      ]);
+      lineChartX.domain([startTime, endTime]);
       lineChart.select(".brush").call(brush.move, null);
 
       lineChart
@@ -209,8 +317,9 @@
           d3
             .line()
             .x((d) => lineChartX(+d.key))
-            .y((d) => lineChartY(+d.value))(aggregatedData)
+            .y((d) => lineChartY(+d.value))(aggregatedDataByTime)
         );
+      aggregateDataForMap();
     }
   </script>
 </body>
