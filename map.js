@@ -7,7 +7,7 @@ async function setMap(rent_data, region, view) {
     //      string region
     //      int view (0: rent, 1: return, 2: rent&return)
     //=========================
-    console.log(rent_data);
+    //console.log(rent_data);
 
     let gangnam_bike_stations = [];
     let total_rent=0, total_return=0;
@@ -98,6 +98,8 @@ async function setMap(rent_data, region, view) {
                         weight: 0
                     });
                 } else {
+                    let station_num = layer.options.id;
+                    // TODO: 선택한 station_num 에 해당하는 chart 지도 밑에 생성
                     event.target.setStyle({
                         color: 'green',
                         fillColor: 'green',
@@ -107,8 +109,6 @@ async function setMap(rent_data, region, view) {
             });
 
     })
-
-    //$("#displayExcelJson").html(JSON.stringify(XLSX.utils.sheet_to_json(sheet)));
 }
 
 function updateMode(mode) {
@@ -189,7 +189,7 @@ main();
 
 async function main() {
     station_data = await d3.csv("spot_data.csv");
-    console.log(station_data);
+    //console.log(station_data);
 
     mymap = L.map('map').setView([37.48, 127.05], 13);
 
@@ -211,10 +211,12 @@ async function main() {
         opt.add(temp);
     })
 
+    // TODO: sync 오류 해결
     setMap(aggregatedDataForMap, '전체', 0)
 }
 
 function updateMap(option){
+    // TODO: 선택한 지역에 따라서 지도 Viewing 위치 변경
     let mr = document.querySelector('#map_region');
     let region = mr.options[mr.selectedIndex].value;
     let mm = document.querySelector('#map_mode');
