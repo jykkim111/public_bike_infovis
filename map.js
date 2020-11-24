@@ -98,7 +98,7 @@ async function setMap(rent_data, region, view) {
                         weight: 0
                     });
                 } else {
-                    let station_num = layer.options.id;
+                    let station_num = event.target.options.id;
                     // TODO: 선택한 station_num 에 해당하는 chart 지도 밑에 생성
                     event.target.setStyle({
                         color: 'green',
