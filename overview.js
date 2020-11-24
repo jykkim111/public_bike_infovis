@@ -130,13 +130,13 @@ function initAggregatedData() {
 
     aggregatedDataForMap = {};
     aggregatedDataByReturnedStation.forEach((v) => {
-        aggregatedDataForMap[v.key] = {
+        aggregatedDataForMap[Number(v.key)] = {
             rented: 0,
             returned: 0,
         };
     });
     aggregatedDataByRentedStation.forEach((v) => {
-        aggregatedDataForMap[v.key] = {
+        aggregatedDataForMap[Number(v.key)] = {
             rented: 0,
             returned: 0,
         };
@@ -145,12 +145,12 @@ function initAggregatedData() {
 
 function aggregateDataForMap() {
     aggregatedDataByRentedStation.forEach((v) => {
-        aggregatedDataForMap[v.key].rented = v.value.filter(
+        aggregatedDataForMap[Number(v.key)].rented = v.value.filter(
             (date) => date >= startTime && date <= endTime
         ).length;
     });
     aggregatedDataByReturnedStation.forEach((v) => {
-        aggregatedDataForMap[v.key].returned = v.value.filter(
+        aggregatedDataForMap[Number(v.key)].returned = v.value.filter(
             (date) => date >= startTime && date <= endTime
         ).length;
     });
@@ -202,7 +202,7 @@ function initLineChart() {
         .on("dblclick", (event) => {
             [startTime, endTime] = lineChartXDomain;
             aggregateDataForMap();
-            updateMap();
+            updateMap('linechart');
             lineChartX.domain(lineChartXDomain);
             lineChart
                 .select("#linechart_x")
@@ -266,5 +266,5 @@ function brushed({ selection }) {
             .y((d) => lineChartY(+d.value))(aggregatedDataByTime)
         );
     aggregateDataForMap();
-    updateMap();
+    updateMap('linechart');
 }

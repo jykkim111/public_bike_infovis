@@ -24,7 +24,7 @@
         min-width: 1800px;
         display: -webkit-flex;
         -webkit-flex-direction: row;
-        display: flex;
+        display: block;
         flex-direction: row;
     }
     
@@ -35,6 +35,11 @@
     #linechart {
         border: 1px solid #c3c3c3;
     }
+
+    #map {
+        width: 800px;
+        height: 500px;
+    }
 </style>
 
 <head>
@@ -43,7 +48,6 @@
     <title>Project</title>
 </head>
 
-<link rel="stylesheet" href="styles.css">
 <script src="https://d3js.org/d3.v6.min.js"></script>
 <script src="https://d3js.org/d3-collection.v1.min.js"></script>
 <script src="https://d3js.org/d3-time.v2.min.js"></script>
@@ -64,10 +68,6 @@
 <script lang="javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script>
-    let aggregatedDataForMap;
-</script>
-
 
 <body>
     <div id="container">
@@ -77,18 +77,27 @@
             </div>
             <div id="linechart"></div>
         </div>
-        <div class="row">
-            <select name="opt" id="map_options" onchange="updateMap()">
-        <option value="normal">default</option>
-        <option value="flow">flow</option>
-      </select>
-            <div id="map"></div>
-            <input type="file" id="excelFile" onchange="excelExport(event)" />
-            <script src="map.js"></script>
+        <div class="map_options">
+            <select name="opt" id="map_mode" onchange="updateMap('mode')">
+                <option value="normal">default</option>
+                <option value="flow">flow</option>
+            </select>
+            <select name="opt" id="map_region" onchange="updateMap('region')">
+            </select>
+            <select name="opt" id="map_view" onchange="updateMap('view')">
+                <option value="0">rented</option>
+                <option value="1">returned</option>
+                <option value="2">all</option>
+            </select>
         </div>
+        <div id="map"></div>
     </div>
 
+    <script>
+        let aggregatedDataForMap;
+    </script>
     <script src="overview.js"></script>
+    <script src="map.js"></script>
 
 
 
