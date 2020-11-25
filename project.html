@@ -1,51 +1,56 @@
 <!DOCTYPE html>
 <style>
-    div.tooltip {
-        position: absolute;
-        text-align: center;
-        width: 60px;
-        linechartheight: 28px;
-        padding: 2px;
-        font: 12px sans-serif;
-        background: lightsteelblue;
-        border: 0px;
-        border-radius: 8px;
-        pointer-events: none;
-    }
-    
-    #container {
-        display: -webkit-flex;
-        -webkit-flex-direction: column;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    div.row {
-        min-width: 1800px;
-        display: -webkit-flex;
-        -webkit-flex-direction: row;
-        display: block;
-        flex-direction: row;
-    }
-    
-    div.components {
-        width: 300px;
-    }
-    
-    #linechart {
-        border: 1px solid #c3c3c3;
-    }
+  div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 60px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+  }
 
-    #map {
-        width: 800px;
-        height: 500px;
-    }
+  #container {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+  }
+
+  div.row {
+    min-width: 1800px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    display: block;
+    flex-direction: row;
+  }
+
+  div.components {
+    width: 300px;
+  }
+
+  #linechart {
+    border: 1px solid #c3c3c3;
+  }
+
+  #map {
+    width: 800px;
+    height: 500px;
+  }
 </style>
 
 <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
-    <title>Project</title>
+  <meta charset="utf-8" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""
+  />
+  <title>Project</title>
 </head>
 
 <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -62,43 +67,58 @@
 <script src="https://d3js.org/d3-drag.v2.min.js"></script>
 <script src="https://d3js.org/d3-brush.v2.min.js"></script>
 
-<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-<script lang="javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script
+  src="https://unpkg.com/react@17/umd/react.development.js"
+  crossorigin
+></script>
+<script
+  src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+  crossorigin
+></script>
+<script
+  src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""
+></script>
+<script
+  lang="javascript"
+  src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"
+></script>
 <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
 <body>
-    <div id="container">
-        <div class="row">
-            <div class="components">
-                <div id="react-component"></div>
-            </div>
-            <div id="linechart"></div>
-        </div>
-        <div class="map_options">
-            <select name="opt" id="map_mode" onchange="updateMap('mode')">
-                <option value="normal">default</option>
-                <option value="flow">flow</option>
-            </select>
-            <select name="opt" id="map_region" onchange="updateMap('region')">
-            </select>
-            <select name="opt" id="map_view" onchange="updateMap('view')">
-                <option value="0">rented</option>
-                <option value="1">returned</option>
-                <option value="2">all</option>
-            </select>
-        </div>
-        <div id="map"></div>
+  <div id="container">
+    <div class="row">
+      <div class="components">
+        <div id="react-component"></div>
+      </div>
+      <div id="linechart"></div>
     </div>
+    <div class="map_options">
+      <select name="opt" id="map_mode" onchange="updateMap('mode')">
+        <option value="normal">default</option>
+        <option value="flow">flow</option>
+      </select>
+      <select
+        name="opt"
+        id="map_region"
+        onchange="updateMap('region')"
+      ></select>
+      <select name="opt" id="map_view" onchange="updateMap('view')">
+        <option value="0">rented</option>
+        <option value="1">returned</option>
+        <option value="2">all</option>
+      </select>
+    </div>
+    <div id="map"></div>
+    <div id="linebarchart"></div>
+  </div>
 
-    <script>
-        let aggregatedDataForMap;
-    </script>
-    <script src="overview.js"></script>
-    <script src="map.js"></script>
-
-
-
+  <script>
+    let aggregatedDataForMap;
+  </script>
+  <script src="overview.js"></script>
+  <script src="map.js"></script>
+  <script src="detailedview.js"></script>
 </body>
