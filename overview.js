@@ -6,6 +6,7 @@ let aggregatedDataForDetailedView;
 let stationNumbers;
 let inflowByHour;
 let outflowByHour;
+let selectedStationNum;
 const aggregateTimePerSeconds = 900; // 15분 단위로 모음
 let lineChartXDomain;
 let selected_property = "rented";
@@ -195,7 +196,12 @@ function initAggregatedData() {
   aggregateDataForMap();
 }
 
-async function aggregateDataForMap() {
+async function onSelectedTimeChanged() {
+  aggregateDataForMap();
+  updateMap("linechart");
+  updateLineBarChart();
+}
+function aggregateDataForMap() {
   aggregatedDataForMap = {};
 
   aggregatedDataByTime
@@ -208,7 +214,6 @@ async function aggregateDataForMap() {
         aggregatedDataForMap[stationNum].returned += info.returned;
       }
     });
-  updateMap("linechart");
   //console.log(aggregatedDataForMap);
 }
 
@@ -277,7 +282,7 @@ function initLineChart() {
             .x((d) => lineChartX(+d[0]))
             .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
         );
-      aggregateDataForMap();
+      onSelectedTimeChanged();
     })
     .on("mouseover", function (event, d) {
       let pageX = event.pageX;
@@ -319,5 +324,5 @@ function brushed({ selection }) {
         .x((d) => lineChartX(+d[0]))
         .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
     );
-  aggregateDataForMap();
+  onSelectedTimeChanged();
 }

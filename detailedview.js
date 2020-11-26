@@ -10,23 +10,27 @@ const lineBarChart = d3
   .attr("transform", `translate(${margin}, ${margin})`);
 
 let lineBarChartX, lineBarChartY;
-let lineBarChartXAxes = lineBarChart
+const lineBarChartXAxes = lineBarChart
   .append("g")
   .attr("id", "linebarchart_x")
   .attr("transform", `translate(0, ${lineBarChartHeight / 2})`);
-let lineBarChartYAxes = lineBarChart.append("g").attr("id", "linebarchart_y");
-let lineBarChartData = lineBarChart
+const lineBarChartYAxes = lineBarChart.append("g").attr("id", "linebarchart_y");
+const lineBarChartData = lineBarChart
   .append("g")
   .attr("width", lineBarChartWidth)
   .attr("height", lineBarChartHeight)
   .attr("id", "linebarchart_data");
-function updateLineBarChartAxes(station_num) {
+function updateLineBarChartAxes() {
   let ymax = Math.max(
     d3.max(aggregatedDataForDetailedView, (d) =>
-      d[1].stationData[station_num] ? d[1].stationData[station_num].rented : 0
+      d[1].stationData[selectedStationNum]
+        ? d[1].stationData[selectedStationNum].rented
+        : 0
     ),
     d3.max(aggregatedDataForDetailedView, (d) =>
-      d[1].stationData[station_num] ? d[1].stationData[station_num].returned : 0
+      d[1].stationData[selectedStationNum]
+        ? d[1].stationData[selectedStationNum].returned
+        : 0
     )
   );
   lineBarChartX = d3
@@ -45,9 +49,10 @@ const lineColor = {
   total: "#808080",
 };
 
-function initLineBarChart(station_num) {
+function updateLineBarChart() {
+  if (selectedStationNum === undefined) return;
   aggregateDataForDetailedView();
-  updateLineBarChartAxes(station_num);
+  updateLineBarChartAxes(selectedStationNum);
   lineBarChartXAxes.call(d3.axisBottom(lineBarChartX));
 
   lineBarChartYAxes.call(d3.axisLeft(lineBarChartY));
@@ -67,9 +72,9 @@ function initLineBarChart(station_num) {
         .x((d) => lineBarChartX(+d[0]))
         .y((d) =>
           lineBarChartY(
-            d[1].stationData[station_num]
+            d[1].stationData[selectedStationNum]
               ? (type === "rented" ? -1 : 1) *
-                  d[1].stationData[station_num][type]
+                  d[1].stationData[selectedStationNum][type]
               : 0
           )
         )(aggregatedDataForDetailedView)

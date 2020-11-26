@@ -100,9 +100,9 @@ async function setMap(rent_data, region, view) {
             weight: 0,
           });
         } else {
-          let station_num = event.target.options.id;
+          selectedStationNum = event.target.options.id;
           // TODO: 선택한 station_num 에 해당하는 chart 지도 밑에 생성
-          initLineBarChart(station_num);
+          updateLineBarChart();
           event.target.setStyle({
             color: "green",
             fillColor: "green",
@@ -239,7 +239,7 @@ async function main() {
   });
 
   // TODO: sync 오류 해결
-  setMap(aggregatedDataForMap, "전체", 0);
+  //setMap(aggregatedDataForMap, "전체", 0);
 }
 
 function updateMap(option) {
