@@ -45,7 +45,6 @@ async function setMap(rent_data, region, view) {
   }
   let max_rent_radius = (100 / max_rent) * total_rent;
   let max_return_radius = (100 / max_return) * total_return;
-
   gangnam_bike_stations.forEach(function (d) {
     let circle_radius;
     let circle_color;

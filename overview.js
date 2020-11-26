@@ -193,7 +193,7 @@ function initAggregatedData() {
   );
   lineChartXDomain = d3.extent(aggregatedDataByTime, (d) => d[0]);
   [startTime, endTime] = lineChartXDomain;
-  aggregateDataForMap();
+  onSelectedTimeChanged();
 }
 
 async function onSelectedTimeChanged() {
