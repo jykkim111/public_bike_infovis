@@ -1,5 +1,7 @@
 let data;
 let aggregatedDataByTime;
+let weatherData;
+let aggregatedWeatherData;
 let aggregatedDataByRentedStation;
 let aggregatedDataByReturnedStation;
 let aggregatedDataForDetailedView;
@@ -8,8 +10,13 @@ let inflowByHour;
 let outflowByHour;
 let selectedStationNum;
 const aggregateTimePerSeconds = 900; // 15분 단위로 모음
+const aggregateTimePerSeconds_weather = 3600;
 let lineChartXDomain;
 let selected_property = "rented";
+let selectedTimeInterval = [0, 24 * 60 * 60 * 1000];
+let switchState = false;
+let defaultColor = "#ffffff";
+const millisecondsPerDay = 1000 * 24 * 60 * 60;
 
 /* 
   startTime, endTime: 선택된 시간 구간
@@ -43,6 +50,7 @@ const lineChartHeight = 150;
 const flowChartWidth = 800;
 const flowChartHeight = 500;
 const margin = 40;
+const defaultLineColor = "#808080";
 
 const brush = d3
   .brushX()
@@ -54,8 +62,6 @@ const brush = d3
 
 const lineChart = d3
   .select("#linechart")
-  .attr("width", lineChartWidth + margin * 2)
-  .attr("height", lineChartHeight + margin * 2)
   .append("svg")
   .attr("width", lineChartWidth + margin * 2)
   .attr("height", lineChartHeight + margin * 2)
@@ -90,12 +96,21 @@ const flowChart = d3
   .append("g")
   .attr("transform", `translate(${margin}, ${margin})`);
 
+const components = d3
+  .select("#components")
+  .append("Button")
+  .attr("variant", "contained")
+  .attr("color", "primary")
+  .attr("width", 30)
+  .attr("height", 50)
+  .text("hi");
 let flowChartX, flowChartY;
 
 main();
 
 async function main() {
   data = await d3.csv("data.csv");
+  weatherData = await d3.csv("weather.csv");
   initAggregatedData();
   initLineChartAxes();
   initLineChart();
@@ -194,6 +209,56 @@ function initAggregatedData() {
   lineChartXDomain = d3.extent(aggregatedDataByTime, (d) => d[0]);
   [startTime, endTime] = lineChartXDomain;
   onSelectedTimeChanged();
+
+  aggregatedWeatherData = d3
+    .nest()
+    .key(
+      (d) =>
+        parseInt(
+          Date.parse(d["일시"]) / (aggregateTimePerSeconds_weather * 1000)
+        ) *
+        (aggregateTimePerSeconds_weather * 1000)
+    )
+    .sortKeys(d3.ascending)
+    .rollup((v) => ({
+      humidity: +v[v.length - 1]["습도"],
+      precipitation: +v[v.length - 1]["누적강수량"],
+    }))
+    .entries(weatherData);
+
+  let prevPrecipitation = 0;
+  for (let i = 1; i < aggregatedWeatherData.length; i++) {
+    let t = aggregatedWeatherData[i].key;
+    if (t % millisecondsPerDay == 0) {
+      prevPrecipitation = 0;
+    }
+    let curPrecipitation = aggregatedWeatherData[i].value.precipitation;
+    aggregatedWeatherData[i].value.precipitation -= prevPrecipitation;
+    prevPrecipitation = curPrecipitation;
+  }
+}
+
+function onSliderChanged(interval) {
+  selectedTimeInterval = interval;
+  d3.select("#rects")
+    .selectAll("rect")
+    .data(aggregatedWeatherData, (d) => d.key)
+    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+}
+
+function onSliderChangeCommitted(interval) {
+  selectedTimeInterval = interval;
+  onSelectedTimeChanged();
+}
+
+function sliderModeChange(state) {
+  defaultColor = state ? "#fdf06f" : "#ffffff";
+  d3.select("#rects")
+    .selectAll("rect")
+    .data(aggregatedWeatherData, (d) => d.key)
+    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
 }
 
 async function onSelectedTimeChanged() {
@@ -201,11 +266,45 @@ async function onSelectedTimeChanged() {
   updateMap("linechart");
   updateLineBarChart();
 }
+
+function onSwitchChanged(state) {
+  switchState = state;
+  d3.select("#rects")
+    .selectAll("rect")
+    .data(aggregatedWeatherData, (d) => d.key)
+    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+}
+
+function grayGradient(key, val) {
+  let color = defaultColor;
+  if (
+    !(
+      (key - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
+        selectedTimeInterval[0] &&
+      (key - 15 * 60 * 60 * 1000) % millisecondsPerDay < selectedTimeInterval[1]
+    )
+  )
+    color = "#ffffff";
+  if (!switchState || val == 0) return color;
+  else if (val <= 5) return d3.rgb(color).darker(1);
+  else if (val <= 10) return d3.rgb(color).darker(2);
+  else return d3.rgb(color).darker(3);
+}
+
 function aggregateDataForMap() {
   aggregatedDataForMap = {};
 
   aggregatedDataByTime
-    .filter((v) => v[0] >= startTime && v[0] <= endTime)
+    .filter(
+      (v) =>
+        v[0] >= startTime &&
+        v[0] <= endTime &&
+        (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
+          selectedTimeInterval[0] &&
+        (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay <=
+          selectedTimeInterval[1]
+    )
     .forEach((v) => {
       for (const [stationNum, info] of Object.entries(v[1].stationData)) {
         if (!aggregatedDataForMap.hasOwnProperty(stationNum))
@@ -238,6 +337,24 @@ function initLineChartAxes() {
 function initLineChart() {
   lineChart
     .append("g")
+    .attr("id", "rects")
+    .attr("clip-path", "url(#clip)")
+    .selectAll("rect")
+    .data(aggregatedWeatherData, (d) => d.key)
+    .enter()
+    .append("rect")
+    .attr("x", (d) => lineChartX(d.key))
+    .attr(
+      "width",
+      (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+        (endTime - startTime)
+    )
+    .attr("height", lineChartHeight)
+    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+
+  lineChart
+    .append("g")
     .attr("id", "linechart_x")
     .attr("transform", `translate(0, ${lineChartHeight})`)
     .call(d3.axisBottom(lineChartX));
@@ -254,7 +371,7 @@ function initLineChart() {
     .enter()
     .append("path")
     .attr("fill", "none")
-    .attr("stroke", "#808080")
+    .attr("stroke", defaultLineColor)
     .attr("d", (data) =>
       d3
         .line()
@@ -282,6 +399,21 @@ function initLineChart() {
             .x((d) => lineChartX(+d[0]))
             .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
         );
+      lineChart
+        .select("#rects")
+        .selectAll("rect")
+        .data(aggregatedWeatherData, (d) => d.key)
+        .transition()
+        .duration(1000)
+        .attr("x", (d) => lineChartX(d.key))
+        .attr(
+          "width",
+          (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+            (endTime - startTime)
+        )
+        .attr("height", lineChartHeight)
+        .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+        .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
       onSelectedTimeChanged();
     })
     .on("mouseover", function (event, d) {
@@ -306,6 +438,22 @@ function brushed({ selection }) {
 
   lineChartX.domain([startTime, endTime]);
   lineChart.select(".brush").call(brush.move, null);
+
+  lineChart
+    .select("#rects")
+    .selectAll("rect")
+    .data(aggregatedWeatherData, (d) => d.key)
+    .transition()
+    .duration(1000)
+    .attr("x", (d) => lineChartX(d.key))
+    .attr(
+      "width",
+      (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+        (endTime - startTime)
+    )
+    .attr("height", lineChartHeight)
+    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
 
   lineChart
     .select("#linechart_x")

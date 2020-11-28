@@ -24,7 +24,6 @@
     min-width: 1800px;
     display: -webkit-flex;
     -webkit-flex-direction: row;
-    display: block;
     flex-direction: row;
   }
 
@@ -50,6 +49,15 @@
     integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
     crossorigin=""
   />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  />
+
   <title>Project</title>
 </head>
 
@@ -86,13 +94,17 @@
 ></script>
 <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script
+  crossorigin
+  src="https://unpkg.com/@material-ui/core/umd/material-ui.development.js"
+></script>
 
 <body>
   <div id="container">
+    <div id="Switch"></div>
+    <div id="RangeSlider"></div>
     <div class="row">
-      <div class="components">
-        <div id="react-component"></div>
-      </div>
       <div id="linechart"></div>
     </div>
     <div class="map_options">
@@ -118,6 +130,8 @@
   <script>
     let aggregatedDataForMap;
   </script>
+  <script src="components_react/RangeSlider.js" type="text/babel"></script>
+  <script src="components_react/Switch.js" type="text/babel"></script>
   <script src="overview.js"></script>
   <script src="map.js"></script>
   <script src="detailedview.js"></script>
