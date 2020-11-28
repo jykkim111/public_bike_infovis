@@ -1,0 +1,33 @@
+.noUi-tooltip{
+    font-size: 10px;
+    margin: 0px;
+}
+
+.noUi-handle {
+  border: 1px solid #D9D9D9;
+  border-radius: 3px;
+  background: #FFF;
+  cursor: default;
+  box-shadow: inset 0 0 1px #FFF;
+}
+
+
+#slider .noUi-base {
+    background: linear-gradient(90deg, rgba(224,58,60,1), rgba(255,230,255,1), rgba(0,157,220,1));
+}
+
+.noUi-connect{
+    background: linear-gradient(90deg, rgba(224,58,60,0) 0%, rgba(0,157,220,0) 100%);
+}
+
+.noUi-background{
+    background: linear-gradient(90deg, rgba(224,58,60,0) 0%, rgba(0,157,220,0) 100%);
+}
+
+#slider_1 .noUi-base {
+    background: linear-gradient(90deg, rgba(224,58,60,1), rgba(244,188,189,1));
+}
+
+#slider_2 .noUi-base {
+    background: linear-gradient(90deg,rgba(158,218,242,1), rgba(0,157,220,1));
+}
