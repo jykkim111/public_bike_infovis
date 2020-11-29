@@ -47,20 +47,24 @@ function RangeSlider() {
         }
         label="시간대 필터"
       />
-      <Typography id="range-slider" gutterBottom>
-        {`시간 범위` +
-          (state ? `(${value.map((v) => valuetext(v)).join("~")})` : "")}
-      </Typography>
-      <Slider
-        value={value}
-        onChange={handleChange}
-        onChangeCommitted={(e, v) => onSliderChangeCommitted(v)}
-        aria-labelledby="range-slider"
-        getAriaValueText={valuetext}
-        max={24 * 60 * 60 * 1000}
-        step={60 * 60 * 1000}
-        disabled={!state}
-      />
+      {state ? (
+        <div>
+          <Typography id="range-slider" gutterBottom>
+            {`시간 범위` +
+              (state ? `(${value.map((v) => valuetext(v)).join("~")})` : "")}
+          </Typography>
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={(e, v) => onSliderChangeCommitted(v)}
+            aria-labelledby="range-slider"
+            getAriaValueText={valuetext}
+            max={24 * 60 * 60 * 1000}
+            step={60 * 60 * 1000}
+            disabled={!state}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

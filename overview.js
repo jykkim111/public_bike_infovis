@@ -43,9 +43,9 @@ const millisecondsPerDay = 1000 * 24 * 60 * 60;
   aggregatedDataForMap, startTime, endTime 자동 갱신
 */
 //let aggregatedDataForMap;
-let startTime, endTime;
+//let startTime, endTime;
 
-const lineChartWidth = 1400;
+const lineChartWidth = 1200;
 const lineChartHeight = 150;
 const flowChartWidth = 800;
 const flowChartHeight = 500;
@@ -58,15 +58,15 @@ const brush = d3
     [0, 0],
     [lineChartWidth, lineChartHeight],
   ])
-  .on("end", brushed);
+  .on("start brush end", brushed);
 
 const lineChart = d3
   .select("#linechart")
   .append("svg")
   .attr("width", lineChartWidth + margin * 2)
-  .attr("height", lineChartHeight + margin * 2)
+  .attr("height", lineChartHeight + margin * 1.5)
   .append("g")
-  .attr("transform", `translate(${margin}, ${margin})`);
+  .attr("transform", `translate(${margin}, ${margin / 2})`);
 
 let lineChartTooltip = d3
   .select("body")
@@ -110,6 +110,7 @@ main();
 
 async function main() {
   data = await d3.csv("data.csv");
+  //aggregatedDataByTime = await d3.json("data.json");
   weatherData = await d3.csv("weather.csv");
   initAggregatedData();
   initLineChartAxes();
@@ -141,6 +142,7 @@ function initAggregatedData() {
         ...
     ]
   */
+
   aggregatedDataByTime = {};
   data.forEach((d) => {
     let rentedTime =
@@ -206,7 +208,11 @@ function initAggregatedData() {
   aggregatedDataByTime = Object.entries(aggregatedDataByTime).sort(
     (a, b) => a[0] - b[0]
   );
-  lineChartXDomain = d3.extent(aggregatedDataByTime, (d) => d[0]);
+
+  lineChartXDomain = [
+    Date.parse("2020-05-01 00:00"),
+    Date.parse("2020-05-31 23:59"),
+  ];
   [startTime, endTime] = lineChartXDomain;
   onSelectedTimeChanged();
 
@@ -257,14 +263,21 @@ function sliderModeChange(state) {
   d3.select("#rects")
     .selectAll("rect")
     .data(aggregatedWeatherData, (d) => d.key)
+    .transition()
+    .duration(1000)
     .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
     .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+  onSelectedTimeChanged();
 }
 
 async function onSelectedTimeChanged() {
   aggregateDataForMap();
   updateMap("linechart");
   updateLineBarChart();
+  ReactDOM.render(
+    e(DateAndTimePickers),
+    document.querySelector("#DateAndTimePickers")
+  );
 }
 
 function onSwitchChanged(state) {
@@ -272,6 +285,8 @@ function onSwitchChanged(state) {
   d3.select("#rects")
     .selectAll("rect")
     .data(aggregatedWeatherData, (d) => d.key)
+    .transition()
+    .duration(600)
     .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
     .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
 }
@@ -300,10 +315,11 @@ function aggregateDataForMap() {
       (v) =>
         v[0] >= startTime &&
         v[0] <= endTime &&
-        (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
-          selectedTimeInterval[0] &&
-        (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay <=
-          selectedTimeInterval[1]
+        (defaultColor === "#ffffff" ||
+          ((v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
+            selectedTimeInterval[0] &&
+            (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay <=
+              selectedTimeInterval[1]))
     )
     .forEach((v) => {
       for (const [stationNum, info] of Object.entries(v[1].stationData)) {
@@ -378,99 +394,92 @@ function initLineChart() {
         .x((d) => lineChartX(+d[0]))
         .y((d) => lineChartY(d[1][selected_property]))(data)
     );
-  lineChart
-    .on("dblclick", (event) => {
-      [startTime, endTime] = lineChartXDomain;
-      lineChartX.domain(lineChartXDomain);
-      lineChart
-        .select("#linechart_x")
-        .transition()
-        .duration(1000)
-        .call(d3.axisBottom(lineChartX));
-      lineChart
-        .select("#linechart_data")
-        .select("path")
-        .transition()
-        .duration(1000)
-        .attr(
-          "d",
-          d3
-            .line()
-            .x((d) => lineChartX(+d[0]))
-            .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
-        );
-      lineChart
-        .select("#rects")
-        .selectAll("rect")
-        .data(aggregatedWeatherData, (d) => d.key)
-        .transition()
-        .duration(1000)
-        .attr("x", (d) => lineChartX(d.key))
-        .attr(
-          "width",
-          (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
-            (endTime - startTime)
-        )
-        .attr("height", lineChartHeight)
-        .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
-        .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
-      onSelectedTimeChanged();
-    })
-    .on("mouseover", function (event, d) {
-      let pageX = event.pageX;
-      let pageY = event.pageY;
-      lineChartTooltip.transition().style("opacity", 0.9);
-      lineChartTooltip
-        .html(d3.timeFormat("%x %X")(lineChartX.invert(pageX)))
-        .style("left", pageX + "px")
-        .style("top", pageY - 28 + "px");
-    })
-    .on("mouseout", (d) => {
-      lineChartTooltip.transition().duration(200).style("opacity", 0);
-    });
+  lineChart.on("dblclick", (event) => {
+    [startTime, endTime] = lineChartXDomain;
+    lineChartX.domain(lineChartXDomain);
+    lineChart
+      .select("#linechart_x")
+      .transition()
+      .duration(1000)
+      .call(d3.axisBottom(lineChartX));
+    lineChart
+      .select("#linechart_data")
+      .select("path")
+      .transition()
+      .duration(1000)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x((d) => lineChartX(+d[0]))
+          .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
+      );
+    lineChart
+      .select("#rects")
+      .selectAll("rect")
+      .data(aggregatedWeatherData, (d) => d.key)
+      .transition()
+      .duration(1000)
+      .attr("x", (d) => lineChartX(d.key))
+      .attr(
+        "width",
+        (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+          (endTime - startTime)
+      )
+      .attr("height", lineChartHeight)
+      .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+      .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+    onSelectedTimeChanged();
+  });
 
   lineChart.append("g").attr("class", "brush").call(brush);
 }
 
-function brushed({ selection }) {
+function brushed({ selection, type }) {
   if (!selection) return;
   [startTime, endTime] = selection.map((v) => Date.parse(lineChartX.invert(v)));
-
-  lineChartX.domain([startTime, endTime]);
-  lineChart.select(".brush").call(brush.move, null);
-
-  lineChart
-    .select("#rects")
-    .selectAll("rect")
-    .data(aggregatedWeatherData, (d) => d.key)
-    .transition()
-    .duration(1000)
-    .attr("x", (d) => lineChartX(d.key))
-    .attr(
-      "width",
-      (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
-        (endTime - startTime)
-    )
-    .attr("height", lineChartHeight)
-    .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
-    .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
-
-  lineChart
-    .select("#linechart_x")
-    .transition()
-    .duration(1000)
-    .call(d3.axisBottom(lineChartX));
-  lineChart
-    .select("#linechart_data")
-    .select("path")
-    .transition()
-    .duration(1000)
-    .attr(
-      "d",
-      d3
-        .line()
-        .x((d) => lineChartX(+d[0]))
-        .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
+  if (type === "brush") {
+    ReactDOM.render(
+      e(DateAndTimePickers),
+      document.querySelector("#DateAndTimePickers")
     );
-  onSelectedTimeChanged();
+  } else if (type === "end") {
+    lineChartX.domain([startTime, endTime]);
+    lineChart.select(".brush").call(brush.move, null);
+
+    lineChart
+      .select("#rects")
+      .selectAll("rect")
+      .data(aggregatedWeatherData, (d) => d.key)
+      .transition()
+      .duration(1000)
+      .attr("x", (d) => lineChartX(d.key))
+      .attr(
+        "width",
+        (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+          (endTime - startTime)
+      )
+      .attr("height", lineChartHeight)
+      .style("stroke", (d) => grayGradient(d.key, d.value.precipitation))
+      .style("fill", (d) => grayGradient(d.key, d.value.precipitation));
+
+    lineChart
+      .select("#linechart_x")
+      .transition()
+      .duration(1000)
+      .call(d3.axisBottom(lineChartX));
+    lineChart
+      .select("#linechart_data")
+      .select("path")
+      .transition()
+      .duration(1000)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x((d) => lineChartX(+d[0]))
+          .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
+      );
+    onSelectedTimeChanged();
+  }
 }

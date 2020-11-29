@@ -1,18 +1,5 @@
 <!DOCTYPE html>
 <style>
-  div.tooltip {
-    position: absolute;
-    text-align: center;
-    width: 60px;
-    height: 28px;
-    padding: 2px;
-    font: 12px sans-serif;
-    background: lightsteelblue;
-    border: 0px;
-    border-radius: 8px;
-    pointer-events: none;
-  }
-
   #container {
     display: -webkit-flex;
     -webkit-flex-direction: column;
@@ -33,6 +20,8 @@
 
   #linechart {
     border: 1px solid #c3c3c3;
+    margin-left: 20px;
+    margin-bottom: 40px;
   }
 
   #map {
@@ -102,10 +91,14 @@
 
 <body>
   <div id="container">
-    <div id="Switch"></div>
-    <div id="RangeSlider"></div>
     <div class="row">
-      <div id="linechart"></div>
+      <div style="min-width: 350px">
+        <div id="Switch"></div>
+        <div id="RangeSlider"></div>
+      </div>
+      <div id="linechart">
+        <div id="DateAndTimePickers"></div>
+      </div>
     </div>
     <div class="map_options">
       <select name="opt" id="map_mode" onchange="updateMap('mode')">
@@ -129,10 +122,12 @@
 
   <script>
     let aggregatedDataForMap;
+    let startTime, endTime;
   </script>
-  <script src="components_react/RangeSlider.js" type="text/babel"></script>
-  <script src="components_react/Switch.js" type="text/babel"></script>
   <script src="overview.js"></script>
   <script src="map.js"></script>
   <script src="detailedview.js"></script>
+  <script src="components_react/RangeSlider.js" type="text/babel"></script>
+  <script src="components_react/Switch.js" type="text/babel"></script>
+  <script src="components_react/DatePicker.js" type="text/babel"></script>
 </body>
