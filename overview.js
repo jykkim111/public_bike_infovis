@@ -11,12 +11,14 @@ let outflowByHour;
 let selectedStationNum;
 const aggregateTimePerSeconds = 900; // 15분 단위로 모음
 const aggregateTimePerSeconds_weather = 3600;
+let aggregateTimePerSeconds_detailedview = 900;
 let lineChartXDomain;
 let selected_property = "rented";
-let selectedTimeInterval = [0, 24 * 60 * 60 * 1000];
 let switchState = false;
 let defaultColor = "#ffffff";
 const millisecondsPerDay = 1000 * 24 * 60 * 60;
+const millisecondsPerHour = 1000 * 60 * 60;
+let selectedTimeInterval = [0, 24 * millisecondsPerHour];
 
 /* 
   startTime, endTime: 선택된 시간 구간
@@ -109,8 +111,8 @@ let flowChartX, flowChartY;
 main();
 
 async function main() {
-  data = await d3.csv("data.csv");
-  //aggregatedDataByTime = await d3.json("data.json");
+  // data = await d3.csv("data.csv");
+  aggregatedDataByTime = await d3.json("data.json");
   weatherData = await d3.csv("weather.csv");
   initAggregatedData();
   initLineChartAxes();
@@ -295,9 +297,10 @@ function grayGradient(key, val) {
   let color = defaultColor;
   if (
     !(
-      (key - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
+      (key - 15 * millisecondsPerHour) % millisecondsPerDay >=
         selectedTimeInterval[0] &&
-      (key - 15 * 60 * 60 * 1000) % millisecondsPerDay < selectedTimeInterval[1]
+      (key - 15 * millisecondsPerHour) % millisecondsPerDay <
+        selectedTimeInterval[1]
     )
   )
     color = "#ffffff";
@@ -316,9 +319,9 @@ function aggregateDataForMap() {
         v[0] >= startTime &&
         v[0] <= endTime &&
         (defaultColor === "#ffffff" ||
-          ((v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay >=
+          ((v[0] - 15 * millisecondsPerHour) % millisecondsPerDay >=
             selectedTimeInterval[0] &&
-            (v[0] - 15 * 60 * 60 * 1000) % millisecondsPerDay <=
+            (v[0] - 15 * millisecondsPerHour) % millisecondsPerDay <=
               selectedTimeInterval[1]))
     )
     .forEach((v) => {
@@ -333,9 +336,49 @@ function aggregateDataForMap() {
 }
 
 function aggregateDataForDetailedView() {
-  aggregatedDataForDetailedView = aggregatedDataByTime.filter(
-    (v) => v[0] >= startTime && v[0] <= endTime
-  );
+  let totalTime = endTime - startTime;
+  if (totalTime > millisecondsPerDay * 15)
+    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 24;
+  else if (totalTime > millisecondsPerDay * 7)
+    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 12;
+  else if (totalTime > millisecondsPerDay * 4)
+    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 6;
+  else if (totalTime > millisecondsPerDay * 2)
+    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 3;
+  else if (totalTime > millisecondsPerDay)
+    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 1;
+  else if (totalTime > millisecondsPerDay / 2)
+    aggregateTimePerSeconds_detailedview = millisecondsPerHour / 1000 / 2;
+  else aggregateTimePerSeconds_detailedview = millisecondsPerHour / 1000 / 4;
+
+  let _startTime =
+    parseInt(
+      (startTime - 15 * millisecondsPerHour) /
+        (aggregateTimePerSeconds_detailedview * 1000)
+    ) *
+      (aggregateTimePerSeconds_detailedview * 1000) +
+    15 * millisecondsPerHour;
+  let _endTime =
+    parseInt(
+      (endTime - 15 * millisecondsPerHour) /
+        (aggregateTimePerSeconds_detailedview * 1000)
+    ) *
+      (aggregateTimePerSeconds_detailedview * 1000) +
+    15 * millisecondsPerHour;
+  aggregatedDataForDetailedView = d3
+    .nest()
+    .key(
+      (v) =>
+        parseInt(
+          (v[0] - 15 * millisecondsPerHour) /
+            (aggregateTimePerSeconds_detailedview * 1000)
+        ) *
+          (aggregateTimePerSeconds_detailedview * 1000) +
+        15 * millisecondsPerHour
+    )
+    .entries(
+      aggregatedDataByTime.filter((v) => v[0] >= _startTime && v[0] <= _endTime)
+    );
 }
 
 function initLineChartAxes() {

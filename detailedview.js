@@ -1,5 +1,5 @@
 const lineBarChartWidth = 800;
-const lineBarChartHeight = 400;
+const lineBarChartHeight = 500;
 
 const lineBarChart = d3
   .select("#linebarchart")
@@ -7,7 +7,7 @@ const lineBarChart = d3
   .attr("width", lineBarChartWidth + margin * 2)
   .attr("height", lineBarChartHeight + margin * 2)
   .append("g")
-  .attr("transform", `translate(${margin}, ${margin})`);
+  .attr("transform", `translate(${margin}, ${margin / 2})`);
 
 let lineBarChartX, lineBarChartY;
 const lineBarChartXAxes = lineBarChart
@@ -20,27 +20,47 @@ const lineBarChartData = lineBarChart
   .attr("width", lineBarChartWidth)
   .attr("height", lineBarChartHeight)
   .attr("id", "linebarchart_data");
+
+let _startTime, _endTime;
+
 function updateLineBarChartAxes() {
   let ymax = Math.max(
     d3.max(aggregatedDataForDetailedView, (d) =>
-      d[1].stationData[selectedStationNum]
-        ? d[1].stationData[selectedStationNum].rented
-        : 0
+      d.values.reduce(
+        (p, c) =>
+          p +
+          (c[1].stationData[selectedStationNum]
+            ? c[1].stationData[selectedStationNum].rented
+            : 0),
+        0
+      )
     ),
     d3.max(aggregatedDataForDetailedView, (d) =>
-      d[1].stationData[selectedStationNum]
-        ? d[1].stationData[selectedStationNum].returned
-        : 0
+      d.values.reduce(
+        (p, c) =>
+          p +
+          (c[1].stationData[selectedStationNum]
+            ? c[1].stationData[selectedStationNum].returned
+            : 0),
+        0
+      )
     )
   );
+
   lineBarChartX = d3
     .scaleTime()
-    .domain([startTime, endTime])
+    .domain([_startTime, _endTime])
     .range([0, lineBarChartWidth]);
+
   lineBarChartY = d3
     .scaleLinear()
     .domain([-ymax, ymax])
     .range([lineBarChartHeight, 0]);
+
+  lineBarChartRectY = d3
+    .scaleLinear()
+    .domain([0, ymax])
+    .range([0, lineBarChartHeight / 2]);
 }
 
 const lineColor = {
@@ -52,6 +72,13 @@ const lineColor = {
 function updateLineBarChart() {
   if (selectedStationNum === undefined) return;
   aggregateDataForDetailedView();
+
+  [_startTime, _endTime] = d3.extent(
+    aggregatedDataForDetailedView,
+    (d) => +d.key
+  );
+  _endTime += aggregateTimePerSeconds_detailedview * 1000;
+
   updateLineBarChartAxes(selectedStationNum);
   lineBarChartXAxes.call(d3.axisBottom(lineBarChartX));
 
@@ -61,7 +88,7 @@ function updateLineBarChart() {
 
   lineBarChartData
     .selectAll("path")
-    .data(["rented", "returned", "total"])
+    .data(["rented", "returned"])
     .enter()
     .append("path")
     .attr("fill", "none")
@@ -69,14 +96,121 @@ function updateLineBarChart() {
     .attr("d", (type) =>
       d3
         .line()
-        .x((d) => lineBarChartX(+d[0]))
-        .y((d) =>
-          lineBarChartY(
-            d[1].stationData[selectedStationNum]
+        .x((i) => {
+          let d = aggregatedDataForDetailedView[parseInt(i / 2)];
+          if (!d) return lineBarChartX(_endTime);
+          return lineBarChartX(+d.key);
+        })
+        .y((i) => {
+          let d;
+          if (i === 0 || i === aggregatedDataForDetailedView.length * 2 + 1)
+            return lineBarChartY(0);
+          else if (i % 2 === 0) {
+            d = aggregatedDataForDetailedView[parseInt(i / 2) - 1];
+          } else d = aggregatedDataForDetailedView[parseInt(i / 2)];
+          return lineBarChartY(
+            (type === "rented" ? -1 : 1) *
+              d.values.reduce(
+                (p, c) =>
+                  p +
+                  (c[1].stationData[selectedStationNum]
+                    ? c[1].stationData[selectedStationNum][type]
+                    : 0),
+                0
+              )
+            /*
+            d.value.stationData[selectedStationNum]
               ? (type === "rented" ? -1 : 1) *
-                  d[1].stationData[selectedStationNum][type]
+                  d.value.stationData[selectedStationNum][type]
               : 0
-          )
-        )(aggregatedDataForDetailedView)
+            */
+          );
+        })(d3.range(0, aggregatedDataForDetailedView.length * 2 + 2))
     );
+
+  lineBarChartData.selectAll("rect").remove();
+  lineBarChartData
+    .selectAll("rect")
+    .data(aggregatedDataForDetailedView)
+    .enter()
+    .append("rect")
+    .attr("x", (d) => lineBarChartX(+d.key))
+    .attr("y", (d) => {
+      if (
+        d.values.reduce(
+          (p, c) =>
+            p +
+            (c[1].stationData[selectedStationNum]
+              ? c[1].stationData[selectedStationNum].total
+              : 0),
+          0
+        ) > 0
+      )
+        return (
+          lineBarChartY(0) -
+          lineBarChartRectY(
+            Math.abs(
+              d.values.reduce(
+                (p, c) =>
+                  p +
+                  (c[1].stationData[selectedStationNum]
+                    ? c[1].stationData[selectedStationNum].total
+                    : 0),
+                0
+              )
+            )
+          )
+        );
+      return lineBarChartY(0);
+    })
+    .attr(
+      "width",
+      (lineBarChartWidth * (aggregateTimePerSeconds_detailedview * 1000)) /
+        (_endTime - _startTime)
+    )
+    .attr("height", (d) =>
+      lineBarChartRectY(
+        Math.abs(
+          d.values.reduce(
+            (p, c) =>
+              p +
+              (c[1].stationData[selectedStationNum]
+                ? c[1].stationData[selectedStationNum].total
+                : 0),
+            0
+          )
+        )
+      )
+    )
+    .style("stroke", (d) =>
+      d.values.reduce(
+        (p, c) =>
+          p +
+          (c[1].stationData[selectedStationNum]
+            ? c[1].stationData[selectedStationNum].total
+            : 0),
+        0
+      ) > 0
+        ? "RoyalBlue"
+        : "Tomato"
+    )
+    .style("fill", (d) =>
+      d.values.reduce(
+        (p, c) =>
+          p +
+          (c[1].stationData[selectedStationNum]
+            ? c[1].stationData[selectedStationNum].total
+            : 0),
+        0
+      ) > 0
+        ? "blue"
+        : "red"
+    )
+    .style("opacity", 0.5);
 }
+
+/*
+d.value = [
+  []
+]
+*/
