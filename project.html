@@ -19,7 +19,6 @@
   }
 
   #linechart {
-    border: 1px solid #c3c3c3;
     margin-left: 20px;
     margin-bottom: 40px;
   }
@@ -92,7 +91,7 @@
 <body>
   <div id="container">
     <div class="row">
-      <div style="min-width: 350px">
+      <div style="min-width: 300px">
         <div id="Switch"></div>
         <div id="RangeSlider"></div>
       </div>
@@ -100,29 +99,36 @@
         <div id="DateAndTimePickers"></div>
       </div>
     </div>
-    <div class="map_options">
-      <select name="opt" id="map_mode" onchange="updateMap('mode')">
-        <option value="normal">default</option>
-        <option value="flow">flow</option>
-      </select>
-      <select
-        name="opt"
-        id="map_region"
-        onchange="updateMap('region')"
-      ></select>
-      <select name="opt" id="map_view" onchange="updateMap('view')">
-        <option value="0">rented</option>
-        <option value="1">returned</option>
-        <option value="2">all</option>
-      </select>
+    <div class="row">
+      <div>
+        <div class="map_options">
+          <select name="opt" id="map_mode" onchange="updateMap('mode')">
+            <option value="normal">default</option>
+            <option value="flow">flow</option>
+          </select>
+          <select
+            name="opt"
+            id="map_region"
+            onchange="updateMap('region')"
+          ></select>
+          <select name="opt" id="map_view" onchange="updateMap('view')">
+            <option value="0">rented</option>
+            <option value="1">returned</option>
+            <option value="2">all</option>
+          </select>
+        </div>
+        <div id="map"></div>
+      </div>
+      <div id="linebarchart"></div>
+      <div id="StationInfo"></div>
     </div>
-    <div id="map"></div>
-    <div id="linebarchart"></div>
   </div>
 
   <script>
     let aggregatedDataForMap;
     let startTime, endTime;
+    let startTime_detailedview, endTime_detailedview;
+    let selectedStationNum;
   </script>
   <script src="overview.js"></script>
   <script src="map.js"></script>
@@ -130,4 +136,5 @@
   <script src="components_react/RangeSlider.js" type="text/babel"></script>
   <script src="components_react/Switch.js" type="text/babel"></script>
   <script src="components_react/DatePicker.js" type="text/babel"></script>
+  <script src="components_react/StationInfo.js" type="text/babel"></script>
 </body>

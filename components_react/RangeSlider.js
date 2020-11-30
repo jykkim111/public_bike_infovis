@@ -7,7 +7,7 @@ const { Typography, Slider, makeStyles, FormControlLabel, Switch } = window[
 
 const useStyles = makeStyles({
   root: {
-    width: 300,
+    width: 250,
   },
 });
 
@@ -50,7 +50,7 @@ function RangeSlider() {
       {state ? (
         <div>
           <Typography id="range-slider" gutterBottom>
-            {`시간 범위` +
+            {`시간 범위 ` +
               (state ? `(${value.map((v) => valuetext(v)).join("~")})` : "")}
           </Typography>
           <Slider

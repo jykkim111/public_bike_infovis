@@ -1,13 +1,13 @@
-const lineBarChartWidth = 800;
+const lineBarChartWidth = 600;
 const lineBarChartHeight = 500;
 
 const lineBarChart = d3
   .select("#linebarchart")
   .append("svg")
   .attr("width", lineBarChartWidth + margin * 2)
-  .attr("height", lineBarChartHeight + margin * 2)
+  .attr("height", lineBarChartHeight + margin * 1.5)
   .append("g")
-  .attr("transform", `translate(${margin}, ${margin / 2})`);
+  .attr("transform", `translate(${margin * 1.2}, ${margin / 2})`);
 
 let lineBarChartX, lineBarChartY;
 const lineBarChartXAxes = lineBarChart
@@ -20,8 +20,6 @@ const lineBarChartData = lineBarChart
   .attr("width", lineBarChartWidth)
   .attr("height", lineBarChartHeight)
   .attr("id", "linebarchart_data");
-
-let _startTime, _endTime;
 
 function updateLineBarChartAxes() {
   let ymax = Math.max(
@@ -49,7 +47,7 @@ function updateLineBarChartAxes() {
 
   lineBarChartX = d3
     .scaleTime()
-    .domain([_startTime, _endTime])
+    .domain([startTime_detailedview, endTime_detailedview])
     .range([0, lineBarChartWidth]);
 
   lineBarChartY = d3
@@ -69,15 +67,55 @@ const lineColor = {
   total: "#808080",
 };
 
+function getStationData() {
+  const selectedStation = station_data.filter(
+    (v) => v["대여소번호"] === selectedStationNum
+  )[0];
+  let rented = 0,
+    returned = 0;
+  aggregatedDataForDetailedView.forEach((d) => {
+    rented += d.values.reduce(
+      (p, c) =>
+        p +
+        (c[1].stationData[selectedStationNum]
+          ? c[1].stationData[selectedStationNum].rented
+          : 0),
+      0
+    );
+    returned += d.values.reduce(
+      (p, c) =>
+        p +
+        (c[1].stationData[selectedStationNum]
+          ? c[1].stationData[selectedStationNum].returned
+          : 0),
+      0
+    );
+  });
+  let timeUnit;
+  if (aggregateTimePerMilliseconds_detailedview == millisecondsPerDay)
+    timeUnit = "1일";
+  else if (aggregateTimePerMilliseconds_detailedview >= millisecondsPerHour)
+    timeUnit = `${
+      aggregateTimePerMilliseconds_detailedview / millisecondsPerHour
+    }시간`;
+  else
+    timeUnit = `${
+      (aggregateTimePerMilliseconds_detailedview / millisecondsPerHour) * 60
+    }분`;
+  return {
+    name: selectedStation["보관소(대여소)명"],
+    address: selectedStation["상세주소"],
+    rented,
+    returned,
+    total: returned - rented,
+    timeUnit,
+  };
+}
+
 function updateLineBarChart() {
   if (selectedStationNum === undefined) return;
   aggregateDataForDetailedView();
-
-  [_startTime, _endTime] = d3.extent(
-    aggregatedDataForDetailedView,
-    (d) => +d.key
-  );
-  _endTime += aggregateTimePerMilliseconds_detailedview;
+  ReactDOM.render(e(StationInfo), document.querySelector("#StationInfo"));
 
   updateLineBarChartAxes(selectedStationNum);
   lineBarChartXAxes.call(d3.axisBottom(lineBarChartX));
@@ -98,13 +136,13 @@ function updateLineBarChart() {
         .line()
         .x((i) => {
           let d = aggregatedDataForDetailedView[parseInt(i / 3)];
-          if (!d) return lineBarChartX(_endTime);
+          if (!d) return lineBarChartX(endTime_detailedview);
           return (
             lineBarChartX(+d.key) +
             (i % 3 === 2
               ? (lineBarChartWidth *
                   aggregateTimePerMilliseconds_detailedview) /
-                (_endTime - _startTime)
+                (endTime_detailedview - startTime_detailedview)
               : 0)
           );
         })
@@ -123,12 +161,6 @@ function updateLineBarChart() {
                     : 0),
                 0
               )
-            /*
-            d.value.stationData[selectedStationNum]
-              ? (type === "rented" ? -1 : 1) *
-                  d.value.stationData[selectedStationNum][type]
-              : 0
-            */
           );
         })(d3.range(0, aggregatedDataForDetailedView.length * 3 + 1))
     )
@@ -172,7 +204,7 @@ function updateLineBarChart() {
     .attr(
       "width",
       (lineBarChartWidth * aggregateTimePerMilliseconds_detailedview) /
-        (_endTime - _startTime)
+        (endTime_detailedview - startTime_detailedview)
     )
     .attr("height", (d) =>
       lineBarChartRectY(

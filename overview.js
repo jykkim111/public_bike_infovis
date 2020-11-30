@@ -8,7 +8,6 @@ let aggregatedDataForDetailedView;
 let stationNumbers;
 let inflowByHour;
 let outflowByHour;
-let selectedStationNum;
 const aggregateTimePerMilliseconds = 1000 * 900; // 15분 단위로 모음
 const aggregateTimePerMilliseconds_weather = 1000 * 3600;
 let aggregateTimePerMilliseconds_detailedview = aggregateTimePerMilliseconds;
@@ -47,8 +46,8 @@ let selectedTimeInterval = [0, 24 * millisecondsPerHour];
 //let aggregatedDataForMap;
 //let startTime, endTime;
 
-const lineChartWidth = 1200;
-const lineChartHeight = 150;
+const lineChartWidth = 1530;
+const lineChartHeight = 200;
 const flowChartWidth = 800;
 const flowChartHeight = 500;
 const margin = 40;
@@ -111,8 +110,8 @@ let flowChartX, flowChartY;
 main();
 
 async function main() {
-  data = await d3.csv("data.csv");
-  //aggregatedDataByTime = await d3.json("data.json");
+  //data = await d3.csv("data.csv");
+  aggregatedDataByTime = await d3.json("data.json");
   weatherData = await d3.csv("weather.csv");
   initAggregatedData();
   initLineChartAxes();
@@ -144,7 +143,7 @@ function initAggregatedData() {
         ...
     ]
   */
-
+  /*
   aggregatedDataByTime = {};
   data.forEach((d) => {
     let rentedTime =
@@ -210,7 +209,7 @@ function initAggregatedData() {
   aggregatedDataByTime = Object.entries(aggregatedDataByTime).sort(
     (a, b) => a[0] - b[0]
   );
-
+  */
   lineChartXDomain = [
     Date.parse("2020-05-01 00:00"),
     Date.parse("2020-05-31 23:59"),
@@ -343,26 +342,27 @@ function aggregateDataForDetailedView() {
     aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 6;
   else if (totalTime > millisecondsPerDay * 2)
     aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 3;
-  else if (totalTime > millisecondsPerDay)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 1;
   else if (totalTime > millisecondsPerDay / 2)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour / 2;
-  else aggregateTimePerMilliseconds_detailedview = millisecondsPerHour / 4;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 1;
+  else if (totalTime > millisecondsPerDay / 4)
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.5;
+  else aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.25;
 
-  let _startTime =
+  startTime_detailedview =
     parseInt(
       (startTime - 15 * millisecondsPerHour) /
         aggregateTimePerMilliseconds_detailedview
     ) *
       aggregateTimePerMilliseconds_detailedview +
     15 * millisecondsPerHour;
-  let _endTime =
+  endTime_detailedview =
     parseInt(
       (endTime - 15 * millisecondsPerHour) /
         aggregateTimePerMilliseconds_detailedview
     ) *
       aggregateTimePerMilliseconds_detailedview +
-    15 * millisecondsPerHour;
+    15 * millisecondsPerHour +
+    aggregateTimePerMilliseconds_detailedview;
   aggregatedDataForDetailedView = d3
     .nest()
     .key(
@@ -375,7 +375,9 @@ function aggregateDataForDetailedView() {
         15 * millisecondsPerHour
     )
     .entries(
-      aggregatedDataByTime.filter((v) => v[0] >= _startTime && v[0] <= _endTime)
+      aggregatedDataByTime.filter(
+        (v) => v[0] >= startTime_detailedview && v[0] < endTime_detailedview
+      )
     );
 }
 
