@@ -9,9 +9,9 @@ let stationNumbers;
 let inflowByHour;
 let outflowByHour;
 let selectedStationNum;
-const aggregateTimePerSeconds = 900; // 15분 단위로 모음
-const aggregateTimePerSeconds_weather = 3600;
-let aggregateTimePerSeconds_detailedview = 900;
+const aggregateTimePerMilliseconds = 1000 * 900; // 15분 단위로 모음
+const aggregateTimePerMilliseconds_weather = 1000 * 3600;
+let aggregateTimePerMilliseconds_detailedview = aggregateTimePerMilliseconds;
 let lineChartXDomain;
 let selected_property = "rented";
 let switchState = false;
@@ -111,8 +111,8 @@ let flowChartX, flowChartY;
 main();
 
 async function main() {
-  // data = await d3.csv("data.csv");
-  aggregatedDataByTime = await d3.json("data.json");
+  data = await d3.csv("data.csv");
+  //aggregatedDataByTime = await d3.json("data.json");
   weatherData = await d3.csv("weather.csv");
   initAggregatedData();
   initLineChartAxes();
@@ -148,11 +148,11 @@ function initAggregatedData() {
   aggregatedDataByTime = {};
   data.forEach((d) => {
     let rentedTime =
-      parseInt(Date.parse(d["대여일시"]) / (aggregateTimePerSeconds * 1000)) *
-      (aggregateTimePerSeconds * 1000);
+      parseInt(Date.parse(d["대여일시"]) / aggregateTimePerMilliseconds) *
+      aggregateTimePerMilliseconds;
     let returnedTime =
-      parseInt(Date.parse(d["반납일시"]) / (aggregateTimePerSeconds * 1000)) *
-      (aggregateTimePerSeconds * 1000);
+      parseInt(Date.parse(d["반납일시"]) / aggregateTimePerMilliseconds) *
+      aggregateTimePerMilliseconds;
     if (isNaN(rentedTime) || isNaN(returnedTime)) return;
 
     if (!aggregatedDataByTime.hasOwnProperty(rentedTime)) {
@@ -222,10 +222,8 @@ function initAggregatedData() {
     .nest()
     .key(
       (d) =>
-        parseInt(
-          Date.parse(d["일시"]) / (aggregateTimePerSeconds_weather * 1000)
-        ) *
-        (aggregateTimePerSeconds_weather * 1000)
+        parseInt(Date.parse(d["일시"]) / aggregateTimePerMilliseconds_weather) *
+        aggregateTimePerMilliseconds_weather
     )
     .sortKeys(d3.ascending)
     .rollup((v) => ({
@@ -338,32 +336,32 @@ function aggregateDataForMap() {
 function aggregateDataForDetailedView() {
   let totalTime = endTime - startTime;
   if (totalTime > millisecondsPerDay * 15)
-    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 24;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 24;
   else if (totalTime > millisecondsPerDay * 7)
-    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 12;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 12;
   else if (totalTime > millisecondsPerDay * 4)
-    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 6;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 6;
   else if (totalTime > millisecondsPerDay * 2)
-    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 3;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 3;
   else if (totalTime > millisecondsPerDay)
-    aggregateTimePerSeconds_detailedview = (millisecondsPerHour / 1000) * 1;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 1;
   else if (totalTime > millisecondsPerDay / 2)
-    aggregateTimePerSeconds_detailedview = millisecondsPerHour / 1000 / 2;
-  else aggregateTimePerSeconds_detailedview = millisecondsPerHour / 1000 / 4;
+    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour / 2;
+  else aggregateTimePerMilliseconds_detailedview = millisecondsPerHour / 4;
 
   let _startTime =
     parseInt(
       (startTime - 15 * millisecondsPerHour) /
-        (aggregateTimePerSeconds_detailedview * 1000)
+        aggregateTimePerMilliseconds_detailedview
     ) *
-      (aggregateTimePerSeconds_detailedview * 1000) +
+      aggregateTimePerMilliseconds_detailedview +
     15 * millisecondsPerHour;
   let _endTime =
     parseInt(
       (endTime - 15 * millisecondsPerHour) /
-        (aggregateTimePerSeconds_detailedview * 1000)
+        aggregateTimePerMilliseconds_detailedview
     ) *
-      (aggregateTimePerSeconds_detailedview * 1000) +
+      aggregateTimePerMilliseconds_detailedview +
     15 * millisecondsPerHour;
   aggregatedDataForDetailedView = d3
     .nest()
@@ -371,9 +369,9 @@ function aggregateDataForDetailedView() {
       (v) =>
         parseInt(
           (v[0] - 15 * millisecondsPerHour) /
-            (aggregateTimePerSeconds_detailedview * 1000)
+            aggregateTimePerMilliseconds_detailedview
         ) *
-          (aggregateTimePerSeconds_detailedview * 1000) +
+          aggregateTimePerMilliseconds_detailedview +
         15 * millisecondsPerHour
     )
     .entries(
@@ -405,7 +403,7 @@ function initLineChart() {
     .attr("x", (d) => lineChartX(d.key))
     .attr(
       "width",
-      (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+      (lineChartWidth * aggregateTimePerMilliseconds_weather) /
         (endTime - startTime)
     )
     .attr("height", lineChartHeight)
@@ -466,7 +464,7 @@ function initLineChart() {
       .attr("x", (d) => lineChartX(d.key))
       .attr(
         "width",
-        (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+        (lineChartWidth * aggregateTimePerMilliseconds_weather) /
           (endTime - startTime)
       )
       .attr("height", lineChartHeight)
@@ -499,7 +497,7 @@ function brushed({ selection, type }) {
       .attr("x", (d) => lineChartX(d.key))
       .attr(
         "width",
-        (lineChartWidth * (aggregateTimePerSeconds_weather * 1000)) /
+        (lineChartWidth * aggregateTimePerMilliseconds_weather) /
           (endTime - startTime)
       )
       .attr("height", lineChartHeight)

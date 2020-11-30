@@ -77,7 +77,7 @@ function updateLineBarChart() {
     aggregatedDataForDetailedView,
     (d) => +d.key
   );
-  _endTime += aggregateTimePerSeconds_detailedview * 1000;
+  _endTime += aggregateTimePerMilliseconds_detailedview;
 
   updateLineBarChartAxes(selectedStationNum);
   lineBarChartXAxes.call(d3.axisBottom(lineBarChartX));
@@ -97,17 +97,22 @@ function updateLineBarChart() {
       d3
         .line()
         .x((i) => {
-          let d = aggregatedDataForDetailedView[parseInt(i / 2)];
+          let d = aggregatedDataForDetailedView[parseInt(i / 3)];
           if (!d) return lineBarChartX(_endTime);
-          return lineBarChartX(+d.key);
+          return (
+            lineBarChartX(+d.key) +
+            (i % 3 === 2
+              ? (lineBarChartWidth *
+                  aggregateTimePerMilliseconds_detailedview) /
+                (_endTime - _startTime)
+              : 0)
+          );
         })
         .y((i) => {
           let d;
-          if (i === 0 || i === aggregatedDataForDetailedView.length * 2 + 1)
+          if (i % 3 === 0) {
             return lineBarChartY(0);
-          else if (i % 2 === 0) {
-            d = aggregatedDataForDetailedView[parseInt(i / 2) - 1];
-          } else d = aggregatedDataForDetailedView[parseInt(i / 2)];
+          } else d = aggregatedDataForDetailedView[parseInt(i / 3)];
           return lineBarChartY(
             (type === "rented" ? -1 : 1) *
               d.values.reduce(
@@ -125,8 +130,9 @@ function updateLineBarChart() {
               : 0
             */
           );
-        })(d3.range(0, aggregatedDataForDetailedView.length * 2 + 2))
-    );
+        })(d3.range(0, aggregatedDataForDetailedView.length * 3 + 1))
+    )
+    .style("opacity", 0.5);
 
   lineBarChartData.selectAll("rect").remove();
   lineBarChartData
@@ -165,7 +171,7 @@ function updateLineBarChart() {
     })
     .attr(
       "width",
-      (lineBarChartWidth * (aggregateTimePerSeconds_detailedview * 1000)) /
+      (lineBarChartWidth * aggregateTimePerMilliseconds_detailedview) /
         (_endTime - _startTime)
     )
     .attr("height", (d) =>
