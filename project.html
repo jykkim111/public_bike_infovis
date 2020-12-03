@@ -1,47 +1,25 @@
 <!DOCTYPE html>
 
 <style>
-    div.tooltip {
-      position: absolute;
-      text-align: center;
-      width: 60px;
-      height: 28px;
-      padding: 2px;
-      font: 12px sans-serif;
-      background: lightsteelblue;
-      border: 0px;
-      border-radius: 8px;
-      pointer-events: none;
-    }
-  
-    #container {
-      display: -webkit-flex;
-      -webkit-flex-direction: column;
-      display: flex;
-      flex-direction: column;
-    }
-  
-    div.row {
-      min-width: 1800px;
-      display: -webkit-flex;
-      -webkit-flex-direction: row;
-      display: block;
-      flex-direction: row;
-    }
-  
-    div.components {
-      width: 300px;
-    }
-  
-    #linechart {
-      border: 1px solid #c3c3c3;
-    }
-  
     #map {
       width: 800px;
       height: 500px;
       display: block;
     }
+
+  #container {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+  }
+
+  div.row {
+    min-width: 1800px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+  }
 
     #map-slider{
         display: flex
@@ -51,12 +29,16 @@
         width: 400px;
         margin-top: 30px;
         margin-right: 30px;
-
     }
     #slider_2{
         width: 400px;
         margin-top: 30px;
     }
+
+  #linechart {
+    margin-left: 20px;
+    margin-bottom: 40px;
+  }
 
   </style>
 
@@ -71,6 +53,15 @@
   <link href="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="map_slider.css">
     <script src="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.js"></script>      
+
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  />
   <title>Project</title>
 </head>
 
@@ -107,49 +98,62 @@
 ></script>
 <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script
+  crossorigin
+  src="https://unpkg.com/@material-ui/core/umd/material-ui.development.js"
+></script>
 
 <body>
   <div id="container">
     <div class="row">
-      <div class="components">
-        <div id="react-component"></div>
+      <div style="min-width: 300px">
+        <div id="Switch"></div>
+        <div id="RangeSlider"></div>
       </div>
-      <div id="linechart"></div>
+      <div id="linechart">
+        <div id="DateAndTimePickers"></div>
+      </div>
     </div>
-    <div class="map_options">
-      <!--
-      <select name="opt" id="map_mode" onchange="updateMap('mode')">
-        <option value="normal">default</option>
-        <option value="flow">flow</option>
-      </select>-->
-      <select
-        name="opt"
-        id="map_region"
-        onchange="updateMap('region')"
-      ></select>
-      <select name="opt" id="map_view" onchange="updateMap('view')">
-        <option value="0">Diff</option>
-        <option value="1">All</option>
-      </select>
+    <div class="row">
+      <div>
+        <div class="map_options">
+          <select
+            name="opt"
+            id="map_region"
+            onchange="updateMap('region')"
+          ></select>
+          <select name="opt" id="map_view" onchange="updateMap('view')">
+            <option value="0">Diff</option>
+            <option value="1">All</option>
+          </select>
+        </div>
+        <div id="map"></div>
+        <div id="map-slider">
+            <div id="slider_1"></div>
+            <div id="slider_2"></div>
+        </div>
+      </div>
+      <div id="linebarchart"></div>
+      <div id="StationInfo"></div>
     </div>
-    <div id="map"></div>
-    <div id="map-slider">
-        <div id="slider_1"></div>
-        <div id="slider_2"></div>
-    </div>
-    <div id="linebarchart"></div>
   </div>
 
   <script>
     let aggregatedDataForMap;
     let slider0_min, slider0_max = 0;
     let slider1_min, slider1_max = 0;
+    let startTime, endTime;
+    let startTime_detailedview, endTime_detailedview;
+    let selectedStationNum;
   </script>
   
   <script src="overview.js"></script>
   <script src="map_slider.js"></script>
   <script src="map.js"></script>
   <script src="detailedview.js"></script>
-  
-  
+  <script src="components_react/RangeSlider.js" type="text/babel"></script>
+  <script src="components_react/Switch.js" type="text/babel"></script>
+  <script src="components_react/DatePicker.js" type="text/babel"></script>
+  <script src="components_react/StationInfo.js" type="text/babel"></script>
 </body>
