@@ -19,7 +19,13 @@ const lineBarChartData = lineBarChart
   .append("g")
   .attr("width", lineBarChartWidth)
   .attr("height", lineBarChartHeight)
-  .attr("id", "linebarchart_data");
+  .attr("id", "linebarchart");
+
+lineBarChartData.append("g").attr("id", "linebarchart_rented");
+
+lineBarChartData.append("g").attr("id", "linebarchart_returned");
+
+lineBarChartData.append("g").attr("id", "linebarchart_total");
 
 function updateLineBarChartAxes() {
   let ymax = Math.max(
@@ -94,7 +100,7 @@ function getStationData() {
   let timeUnit;
   if (aggregateTimePerMilliseconds_detailedview == millisecondsPerDay)
     timeUnit = "1일";
-  else if (aggregateTimePerMilliseconds_detailedview >= millisecondsPerHour)
+  else if (aggregateTimePerMilliseconds_detailedview > millisecondsPerHour)
     timeUnit = `${
       aggregateTimePerMilliseconds_detailedview / millisecondsPerHour
     }시간`;
@@ -122,52 +128,9 @@ function updateLineBarChart() {
 
   lineBarChartYAxes.call(d3.axisLeft(lineBarChartY));
 
-  lineBarChartData.selectAll("path").remove();
-
-  lineBarChartData
-    .selectAll("path")
-    .data(["rented", "returned"])
-    .enter()
-    .append("path")
-    .attr("fill", "none")
-    .attr("stroke", (type) => lineColor[type])
-    .attr("d", (type) =>
-      d3
-        .line()
-        .x((i) => {
-          let d = aggregatedDataForDetailedView[parseInt(i / 3)];
-          if (!d) return lineBarChartX(endTime_detailedview);
-          return (
-            lineBarChartX(+d.key) +
-            (i % 3 === 2
-              ? (lineBarChartWidth *
-                  aggregateTimePerMilliseconds_detailedview) /
-                (endTime_detailedview - startTime_detailedview)
-              : 0)
-          );
-        })
-        .y((i) => {
-          let d;
-          if (i % 3 === 0) {
-            return lineBarChartY(0);
-          } else d = aggregatedDataForDetailedView[parseInt(i / 3)];
-          return lineBarChartY(
-            (type === "rented" ? -1 : 1) *
-              d.values.reduce(
-                (p, c) =>
-                  p +
-                  (c[1].stationData[selectedStationNum]
-                    ? c[1].stationData[selectedStationNum][type]
-                    : 0),
-                0
-              )
-          );
-        })(d3.range(0, aggregatedDataForDetailedView.length * 3 + 1))
-    )
-    .style("opacity", 0.5);
-
-  lineBarChartData.selectAll("rect").remove();
-  lineBarChartData
+  const lineBarChartData_total = lineBarChartData.select("#linebarchart_total");
+  lineBarChartData_total.selectAll("rect").remove();
+  lineBarChartData_total
     .selectAll("rect")
     .data(aggregatedDataForDetailedView)
     .enter()
@@ -244,11 +207,53 @@ function updateLineBarChart() {
         ? "blue"
         : "red"
     )
-    .style("opacity", 0.5);
-}
+    .style("opacity", 0.35);
 
-/*
-d.value = [
-  []
-]
-*/
+  for (let type of ["rented", "returned"]) {
+    lineBarChartData.select(`#linebarchart_${type}`).selectAll("rect").remove();
+    lineBarChartData
+      .select(`#linebarchart_${type}`)
+      .selectAll("rect")
+      .data(aggregatedDataForDetailedView)
+      .enter()
+      .append("rect")
+      .attr("x", (d) => lineBarChartX(+d.key))
+      .attr("y", (d) => {
+        if (type === "returned")
+          return (
+            lineBarChartY(0) -
+            lineBarChartRectY(
+              d.values.reduce(
+                (p, c) =>
+                  p +
+                  (c[1].stationData[selectedStationNum]
+                    ? c[1].stationData[selectedStationNum][type]
+                    : 0),
+                0
+              )
+            )
+          );
+        return lineBarChartY(0);
+      })
+      .attr(
+        "width",
+        (lineBarChartWidth * aggregateTimePerMilliseconds_detailedview) /
+          (endTime_detailedview - startTime_detailedview)
+      )
+      .attr("height", (d) =>
+        lineBarChartRectY(
+          d.values.reduce(
+            (p, c) =>
+              p +
+              (c[1].stationData[selectedStationNum]
+                ? c[1].stationData[selectedStationNum][type]
+                : 0),
+            0
+          )
+        )
+      )
+      .style("stroke", type === "returned" ? "RoyalBlue" : "Tomato")
+      .style("fill", type === "returned" ? "blue" : "red")
+      .style("opacity", 0.2);
+  }
+}

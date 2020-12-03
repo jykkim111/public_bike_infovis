@@ -332,21 +332,25 @@ function aggregateDataForMap() {
   //console.log(aggregatedDataForMap);
 }
 
-function aggregateDataForDetailedView() {
+function aggregateDataForDetailedView(aggregateTimePerMilliseconds_custom) {
   let totalTime = endTime - startTime;
-  if (totalTime > millisecondsPerDay * 15)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 24;
-  else if (totalTime > millisecondsPerDay * 7)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 12;
-  else if (totalTime > millisecondsPerDay * 4)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 6;
-  else if (totalTime > millisecondsPerDay * 2)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 3;
-  else if (totalTime > millisecondsPerDay / 2)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 1;
-  else if (totalTime > millisecondsPerDay / 4)
-    aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.5;
-  else aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.25;
+  if (aggregateTimePerMilliseconds_custom)
+    aggregateTimePerMilliseconds_detailedview = aggregateTimePerMilliseconds_custom;
+  else {
+    if (totalTime > millisecondsPerDay * 15)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 24;
+    else if (totalTime > millisecondsPerDay * 7)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 12;
+    else if (totalTime > millisecondsPerDay * 4)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 6;
+    else if (totalTime > millisecondsPerDay * 2)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 3;
+    else if (totalTime > millisecondsPerDay / 2)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 1;
+    else if (totalTime > millisecondsPerDay / 4)
+      aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.5;
+    else aggregateTimePerMilliseconds_detailedview = millisecondsPerHour * 0.25;
+  }
 
   startTime_detailedview =
     parseInt(

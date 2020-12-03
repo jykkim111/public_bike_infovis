@@ -1,9 +1,14 @@
 "use strict";
 
 const e = React.createElement;
-const { Typography, Slider, makeStyles, FormControlLabel, Switch } = window[
-  "MaterialUI"
-];
+const {
+  Typography,
+  Slider,
+  makeStyles,
+  FormControlLabel,
+  Switch,
+  Collapse,
+} = window["MaterialUI"];
 
 const useStyles = makeStyles({
   root: {
@@ -47,7 +52,7 @@ function RangeSlider() {
         }
         label="시간대 필터"
       />
-      {state ? (
+      <Collapse in={state}>
         <div>
           <Typography id="range-slider" gutterBottom>
             {`시간 범위 ` +
@@ -64,7 +69,7 @@ function RangeSlider() {
             disabled={!state}
           />
         </div>
-      ) : null}
+      </Collapse>
     </div>
   );
 }
