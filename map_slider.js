@@ -64,7 +64,7 @@ function setSlider(slider_mode, min_val, max_val) {
 
         slider.noUiSlider.on('change', function(values, _, _, _, positions) {
             console.log("slider: ", values); // TODO: slider 값에 따라 지도 view update 범위 list 형태로 나옴 [min, max]
-            updateBySlider(0, values);
+            updateBySlider(0);
         });
     } else if (slider_mode == 0) {
 
@@ -103,7 +103,7 @@ function setSlider(slider_mode, min_val, max_val) {
 
         slider_1.noUiSlider.on('change', function(values, _, _, _, positions) {
             console.log("slider1: ", values); // TODO: slider 값에 따라 지도 view update 범위 list 형태로 나옴 [min, max]
-            updateBySlider(1, values);
+            updateBySlider(1);
         });
 
         noUiSlider.create(slider_2, {
@@ -132,7 +132,7 @@ function setSlider(slider_mode, min_val, max_val) {
 
         slider_2.noUiSlider.on('change', function(values, _, _, _, positions) {
             console.log("slider2: ", values); // TODO: slider 값에 따라 지도 view update 범위 list 형태로 나옴 [min, max]
-            updateBySlider(2, values);
+            updateBySlider(1);
         });
     }
 }

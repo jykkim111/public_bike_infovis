@@ -72,10 +72,9 @@ async function setMap(rent_data, region, view) {
     let radius_interval = 10;
     let binning = 100;
 
-    if(view == 0){
+    if (view == 0) {
         setSlider(1, 0, max_diff);
-    }
-    else if(view == 1){
+    } else if (view == 1) {
         setSlider(0, total_min, total_max);
     }
 
@@ -96,8 +95,7 @@ async function setMap(rent_data, region, view) {
             }
 
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
-        } 
-        else if (view == 1){
+        } else if (view == 1) {
             if (d["rented"] >= d["returned"]) {
                 temp_val = d["rented"];
                 circle_color = pickHex(slider_1_color[1], slider_1_color[0], Math.abs(temp_val) / total_max);
@@ -113,11 +111,11 @@ async function setMap(rent_data, region, view) {
                 fillColor: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
                 weight: 0,
                 fillOpacity: 0.8,
-                radius:  circle_radius,
+                radius: circle_radius,
                 className: "value",
                 id: d["대여소번호"].toString(),
             })
-            .bindTooltip("[" + d["대여소번호"] + "] " + d["보관소(대여소)명"] + "(값: "+temp_val+")", {
+            .bindTooltip("[" + d["대여소번호"] + "] " + d["보관소(대여소)명"] + "(값: " + temp_val + ")", {
                 permanent: false,
                 direction: "right",
             })
@@ -155,11 +153,14 @@ async function setMap(rent_data, region, view) {
 
 
 
-function updateBySlider(mode, slider_value) {
+function updateBySlider(mode) {
 
-    let min_thresh = slider_value[0];
-    let max_thresh = slider_value[1];
 
+
+    let slider1_value = slider_1.noUiSlider.get();
+    let slider2_value = slider_2.noUiSlider.get();
+    console.log(slider1_value);
+    console.log(slider2_value);
     //console.log(aggregatedDataForMap);
 
     mymap.eachLayer(function(layer) {
@@ -187,7 +188,9 @@ function updateBySlider(mode, slider_value) {
 
             if (mode == 0) {
                 let total = returned - rented;
-
+                let slider_value = slider.noUiSlider.get();
+                let min_thresh = slider_value[0];
+                let max_thresh = slider_value[1];
                 if (total < min_thresh || total > max_thresh) {
                     layer.setStyle({
                         fillOpacity: 0.0
@@ -197,27 +200,32 @@ function updateBySlider(mode, slider_value) {
                         fillOpacity: 0.8
                     });
                 }
-            } else if (mode == 1) {
-                if (rented < min_thresh || rented > max_thresh) {
-                    layer.setStyle({
-                        fillOpacity: 0.0
-                    });
-                } else {
-                    layer.setStyle({
-                        fillOpacity: 0.8
-                    });
-                }
             } else {
-                if (returned < min_thresh || returned > max_thresh) {
+
+                let slider1_value = slider_1.noUiSlider.get();
+                let slider2_value = slider_2.noUiSlider.get();
+                let min1_thresh = slider1_value[0];
+                let max1_thresh = slider1_value[1];
+                let min2_thresh = slider2_value[0];
+                let max2_thresh = slider2_value[1];
+                if (rented < min1_thresh || rented > max1_thresh) {
                     layer.setStyle({
                         fillOpacity: 0.0
                     });
                 } else {
-                    layer.setStyle({
-                        fillOpacity: 0.8
-                    });
+                    if (returned < min2_thresh || returned > max2_thresh) {
+                        layer.setStyle({
+                            fillOpacity: 0.0
+                        });
+                    } else {
+                        layer.setStyle({
+                            fillOpacity: 0.8
+                        });
+                    }
                 }
             }
+
+
 
 
         }
@@ -293,34 +301,36 @@ function updateMode(mode) {
 
 let station_data;
 let mymap;
-let regions = [
-    "전체",
-    "종로구",
-    "중구",
-    "용산구",
-    "성동구",
-    "광진구",
-    "동대문구",
-    "중랑구",
-    "성북구",
-    "강북구",
-    "도봉구",
-    "노원구",
-    "은평구",
-    "서대문구",
-    "마포구",
-    "양천구",
-    "강서구",
-    "구로구",
-    "금천구",
-    "영등포구",
-    "동작구",
-    "관악구",
-    "서초구",
-    "강남구",
-    "송파구",
-    "강동구",
-];
+
+
+let regions = {
+    "전체": [37.56, 127.00],
+    "종로구": [37.58, 126.98],
+    "중구": [37.56, 126.99],
+    "용산구": [37.53, 126.98],
+    "성동구": [37.55, 127.04],
+    "광진구": [37.54, 127.08],
+    "동대문구": [37.58, 127.05],
+    "중랑구": [37.59, 127.09],
+    "성북구": [37.60, 127.02],
+    "강북구": [37.63, 127.01],
+    "도봉구": [37.66, 127.03],
+    "노원구": [37.65, 127.07],
+    "은평구": [37.61, 126.92],
+    "서대문구": [37.57, 126.93],
+    "마포구": [37.55, 126.90],
+    "양천구": [37.52, 126.85],
+    "강서구": [37.56, 126.82],
+    "구로구": [37.49, 126.85],
+    "금천구": [37.46, 126.90],
+    "영등포구": [37.51, 126.91],
+    "동작구": [37.50, 126.94],
+    "관악구": [37.46, 126.94],
+    "서초구": [37.47, 127.03],
+    "강남구": [37.49, 127.06],
+    "송파구": [37.50, 127.11],
+    "강동구": [37.55, 127.14],
+}
 
 main();
 
@@ -345,7 +355,7 @@ async function main() {
 
     // setting map_region
     let opt = document.querySelector("#map_region");
-    regions.forEach(function(d) {
+    Object.keys(regions).forEach(function(d) {
         let temp = document.createElement("option");
         temp.text = d;
         temp.value = d;
@@ -360,8 +370,15 @@ function updateMap(option) {
     // TODO: 선택한 지역에 따라서 지도 Viewing 위치 변경
     let mr = document.querySelector("#map_region");
     let region = mr.options[mr.selectedIndex].value;
+    console.log(region);
     let mv = document.querySelector("#map_view");
     let view = mv.options[mv.selectedIndex].value;
+
+    if (region == '전체') {
+        mymap.setView(regions[region], 11);
+    } else {
+        mymap.setView(regions[region], 12);
+    }
 
     mymap.eachLayer(function(layer) {
         if (layer.options.className == "value") mymap.removeLayer(layer);
@@ -376,7 +393,5 @@ function updateMap(option) {
     */
 
     setMap(aggregatedDataForMap, region, view);
-    console.log(slider1_max, slider1_min);
-
 
 }
