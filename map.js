@@ -67,7 +67,10 @@ async function setMap(rent_data, region, view) {
 
     let total_max = Math.max(max_rent, max_return);
     let total_min = Math.min(min_rent, min_return);
-    let radius_interval = 20;// 20~120
+
+    // circle size = [radius_interval, (radius_interval + 1) * binning]
+    let radius_interval = 10;
+    let binning = 100;
 
     if(view == 0){
         setSlider(1, 0, max_diff);
@@ -91,9 +94,8 @@ async function setMap(rent_data, region, view) {
                 circle_color = pickHex(slider_color[2], slider_color[1], Math.abs(temp_val) / max_diff);
                 //circle_color = "blue";
             }
-            console.log("color: ", Math.abs(temp_val) / max_diff)
 
-            circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / 100) + 1) * radius_interval;
+            circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
         } 
         else if (view == 1){
             if (d["rented"] >= d["returned"]) {
@@ -104,7 +106,7 @@ async function setMap(rent_data, region, view) {
                 temp_val = d["returned"];
                 circle_color = pickHex(slider_2_color[1], slider_2_color[0], Math.abs(temp_val) / total_max);
             }
-            circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / 100) + 1) * radius_interval
+            circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / binning) + 1) * radius_interval
         }
         let circle = L.circle([d["위도"], d["경도"]], {
                 color: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
@@ -133,8 +135,8 @@ async function setMap(rent_data, region, view) {
             .on("mouseup", (event) => {
                 if (event.target.options.color == "green") {
                     event.target.setStyle({
-                        color: circle_color,
-                        fillColor: circle_color,
+                        color: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
+                        fillColor: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
                         weight: 0,
                     });
                 } else {
