@@ -45,7 +45,7 @@ async function setMap(rent_data, region, view) {
     }
     let max_rent_radius = (200 / max_rent) * total_rent;
     let max_return_radius = (200 / max_return) * total_return;
-    let max_total_radius = (200 / (max_rent + max_return)) * (total_rent + total_return);
+    let max_total_radius = (200 / Math.abs(max_return + max_rent)) * Math.abs(total_return + total_rent);
 
     let currentMax = 0;
     slider1_max = 0;
@@ -77,14 +77,18 @@ async function setMap(rent_data, region, view) {
         }
         */
         if (view == 0) {
-            circle_radius = ((d["rented"] + d["returned"]) / (total_rent + total_return)) * max_total_radius;
+            circle_radius = (Math.abs(d["returned"] + d["rented"]) / Math.abs(total_return + total_rent)) * max_total_radius;
             circle_color = "red";
-            currentMax = d["rented"] + d["returned"]
+            currentMax = Math.abs(d["returned"] - d["rented"]);
+
             if (slider1_max <= currentMax) {
                 slider1_max = currentMax;
             }
 
-            slider1_min = 0;
+            if (slider1_max == 0) {
+                slider1_max++;
+            }
+
             setSlider(1, slider1_min, slider1_max);
 
         } else {
@@ -106,7 +110,6 @@ async function setMap(rent_data, region, view) {
 
             setSlider(0, slider0_min, slider0_max);
         }
-
         let circle = L.circle([d["위도"], d["경도"]], {
                 color: circle_color,
                 fillColor: circle_color,
@@ -185,7 +188,7 @@ function updateBySlider(mode, slider_value) {
             }
 
             if (mode == 0) {
-                let total = rented + returned;
+                let total = returned - rented;
 
                 if (total < min_thresh || total > max_thresh) {
                     layer.setStyle({
@@ -327,7 +330,7 @@ async function main() {
     station_data = await d3.csv("spot_data.csv");
     //console.log(station_data);
 
-    mymap = L.map("map").setView([37.48, 127.05], 13);
+    mymap = L.map("map").setView([37.56, 127.00], 11);
 
     L.tileLayer(
         "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiamtzbW9vdmUxNCIsImEiOiJja2hqNzk2ODkwajBxMnNzZDRicjUzeDVnIn0.W6JG8IbwREpA3HRD0T8-7g", {

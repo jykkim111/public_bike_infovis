@@ -52,7 +52,7 @@ function setSlider(slider_mode, min_val, max_val) {
                 }
             },
             range: {
-                'min': min_val,
+                'min': -max_val,
                 'max': max_val
             },
             pips: {
