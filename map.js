@@ -10,10 +10,13 @@ async function setMap(rent_data, region, view) {
     //console.log(rent_data);
 
     let gangnam_bike_stations = [];
-    let total_rent = 0,
-        total_return = 0;
+
     let max_rent = 0,
         max_return = 0;
+    let min_rent = 99999,
+        min_return = 9999;
+    let max_diff = 0;
+    let min_diff = 99999;
 
     for (let i = 0; i < station_data.length; i++) {
         if (region == "전체" || station_data[i]["자치구"] == region) {
@@ -37,89 +40,82 @@ async function setMap(rent_data, region, view) {
                 max_return = station_data[i]["returned"];
             }
 
-            total_rent += station_data[i]["rented"];
-            total_return += station_data[i]["returned"];
+            if (min_rent > station_data[i]["rented"]) {
+                min_rent = station_data[i]["rented"];
+            }
+
+            if (min_return > station_data[i]["returned"]) {
+                min_return = station_data[i]["returned"];
+            }
+
+            let temp_diff = Math.abs(station_data[i]["rented"] - station_data[i]["returned"]);
+            if (min_diff > temp_diff) {
+                min_diff = temp_diff;
+            }
+
+            if (max_diff < temp_diff) {
+                max_diff = temp_diff;
+            }
 
             gangnam_bike_stations.push(station_data[i]);
         }
     }
-    let max_rent_radius = (200 / max_rent) * total_rent;
-    let max_return_radius = (200 / max_return) * total_return;
-    let max_total_radius = (200 / Math.abs(max_return + max_rent)) * Math.abs(total_return + total_rent);
 
-    let currentMax = 0;
-    slider1_max = 0;
-    slider1_min = 0;
-    slider0_min = 0;
-    slider0_max = 0;
+    console.log("min/max rent: ", min_rent, max_rent);
+    console.log("min/max returned: ", min_return, max_return);
+    console.log("min/max diff: ", min_diff, max_diff);
+
+    let total_max = Math.max(max_rent, max_return);
+    let total_min = Math.min(min_rent, min_return);
+    let radius_interval = 20;// 20~120
+
+    if(view == 0){
+        setSlider(1, 0, max_diff);
+    }
+    else if(view == 1){
+        setSlider(0, total_min, total_max);
+    }
+
+
     gangnam_bike_stations.forEach(function(d) {
         let circle_radius;
         let circle_color;
+        let temp_val;
 
-        /*
         if (view == 0) {
-          //rent
-          circle_radius = (d["rented"] / total_rent) * max_rent_radius;
-          circle_color = "red";
-        } else if (view == 1) {
-          //return
-          circle_radius = (d["returned"] / total_return) * max_return_radius;
-          circle_color = "blue";
-        } else if (view == 2) {
-          //rent&return
-          if (d["rented"] >= d["returned"]) {
-            circle_radius = (d["rented"] / total_rent) * max_rent_radius;
-            circle_color = "red";
-          } else {
-            circle_radius = (d["returned"] / total_return) * max_return_radius;
-            circle_color = "blue";
-          }
-        }
-        */
-        if (view == 0) {
-            circle_radius = (Math.abs(d["returned"] + d["rented"]) / Math.abs(total_return + total_rent)) * max_total_radius;
-            circle_color = "red";
-            currentMax = Math.abs(d["returned"] - d["rented"]);
+            temp_val = d["rented"] - d["returned"];
 
-            if (slider1_max <= currentMax) {
-                slider1_max = currentMax;
-            }
-
-            if (slider1_max == 0) {
-                slider1_max++;
-            }
-
-            setSlider(1, slider1_min, slider1_max);
-
-        } else {
-            if (d["rented"] >= d["returned"]) {
-                circle_radius = (d["rented"] / total_rent) * max_rent_radius;
-                circle_color = "red";
-                currentMax = d["rented"];
-                if (slider0_max <= currentMax) {
-                    slider0_max = currentMax;
-                }
+            if (temp_val >= 0) {
+                circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
             } else {
-                circle_radius = (d["returned"] / total_return) * max_return_radius;
-                circle_color = "blue";
-                currentMax = d["returned"];
-                if (slider0_max <= currentMax) {
-                    slider0_max = currentMax;
-                }
+                circle_color = pickHex(slider_color[2], slider_color[1], Math.abs(temp_val) / max_diff);
+                //circle_color = "blue";
             }
+            console.log("color: ", Math.abs(temp_val) / max_diff)
 
-            setSlider(0, slider0_min, slider0_max);
+            circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / 100) + 1) * radius_interval;
+        } 
+        else if (view == 1){
+            if (d["rented"] >= d["returned"]) {
+                temp_val = d["rented"];
+                circle_color = pickHex(slider_1_color[1], slider_1_color[0], Math.abs(temp_val) / total_max);
+                //circle_color = "red";
+            } else {
+                temp_val = d["returned"];
+                circle_color = pickHex(slider_2_color[1], slider_2_color[0], Math.abs(temp_val) / total_max);
+            }
+            circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / 100) + 1) * radius_interval
         }
         let circle = L.circle([d["위도"], d["경도"]], {
-                color: circle_color,
-                fillColor: circle_color,
+                color: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
+                fillColor: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
                 weight: 0,
                 fillOpacity: 0.8,
-                radius: circle_radius,
+                radius:  circle_radius,
                 className: "value",
                 id: d["대여소번호"].toString(),
             })
-            .bindTooltip("[" + d["대여소번호"] + "] " + d["보관소(대여소)명"], {
+            .bindTooltip("[" + d["대여소번호"] + "] " + d["보관소(대여소)명"] + "(값: "+temp_val+")", {
                 permanent: false,
                 direction: "right",
             })
