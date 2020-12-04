@@ -48,7 +48,7 @@ async function setMap(rent_data, region, view) {
                 min_return = station_data[i]["returned"];
             }
 
-            let temp_diff = Math.abs(station_data[i]["rented"] - station_data[i]["returned"]);
+            let temp_diff = Math.abs(station_data[i]["returned"] - station_data[i]["rented"]);
             if (min_diff > temp_diff) {
                 min_diff = temp_diff;
             }
@@ -73,9 +73,9 @@ async function setMap(rent_data, region, view) {
     let binning = 100;
 
     if (view == 0) {
-        setSlider(1, 0, max_diff);
-    } else if (view == 1) {
         setSlider(0, total_min, total_max);
+    } else if (view == 1) {
+        setSlider(1, 0, max_diff);
     }
 
 
@@ -84,8 +84,8 @@ async function setMap(rent_data, region, view) {
         let circle_color;
         let temp_val;
 
-        if (view == 0) { // diff
-            temp_val = d["rented"] - d["returned"];
+        if (view == 1) { // diff
+            temp_val = d["returned"] - d["rented"];
 
             if (temp_val >= 0) {
                 circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
@@ -94,7 +94,7 @@ async function setMap(rent_data, region, view) {
             }
 
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
-        } else if (view == 1) { // all
+        } else if (view == 0) { // all
             temp_val = d["rented"] + d["returned"];
             circle_color = pickHex(slider_color_all[1], slider_color_all[0], Math.abs(temp_val) / total_max);
             circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / binning) + 1) * radius_interval
@@ -132,7 +132,7 @@ async function setMap(rent_data, region, view) {
                     });
                 } else {
                     selectedStationNum = event.target.options.id;
-                    // TODO: 선택한 station_num 에 해당하는 chart 지도 밑에 생성
+                    circleBackFromGreen(circle_color[0], circle_color[1], circle_color[2]);
                     updateLineBarChart();
                     event.target.setStyle({
                         color: "green",
@@ -145,15 +145,25 @@ async function setMap(rent_data, region, view) {
 }
 
 
+function circleBackFromGreen(color1, color2, color3) {
+    mymap.eachLayer(function(layer) {
+        if (layer.options.color == 'green') {
+            layer.setStyle({
+                color: d3.rgb(color1, color2, color3),
+                fillColor: d3.rgb(color1, color2, color3)
+            });
+        }
+    });
+
+}
+
 
 function updateBySlider(mode) {
 
 
 
     let slider1_value = slider.noUiSlider.get();
-    let slider2_value = slider.noUiSlider.get();
     console.log(slider1_value);
-    console.log(slider2_value);
     //console.log(aggregatedDataForMap);
 
     mymap.eachLayer(function(layer) {
@@ -180,7 +190,7 @@ function updateBySlider(mode) {
             }
 
             if (mode == 0) {
-                let total = returned - rented;
+                let total = returned + rented;
                 let slider_value = slider.noUiSlider.get();
                 let min_thresh = slider_value[0];
                 let max_thresh = slider_value[1];
@@ -196,17 +206,16 @@ function updateBySlider(mode) {
             } else {
 
                 let slider1_value = slider.noUiSlider.get();
-                let slider2_value = slider.noUiSlider.get();
+
                 let min1_thresh = slider1_value[0];
                 let max1_thresh = slider1_value[1];
-                let min2_thresh = slider2_value[0];
-                let max2_thresh = slider2_value[1];
+
                 if (rented < min1_thresh || rented > max1_thresh) {
                     layer.setStyle({
                         fillOpacity: 0.0
                     });
                 } else {
-                    if (returned < min2_thresh || returned > max2_thresh) {
+                    if (returned < min1_thresh || returned > max1_thresh) {
                         layer.setStyle({
                             fillOpacity: 0.0
                         });
@@ -363,9 +372,14 @@ function updateMap(option) {
     // TODO: 선택한 지역에 따라서 지도 Viewing 위치 변경
     let mr = document.querySelector("#map_region");
     let region = mr.options[mr.selectedIndex].value;
-    console.log(region);
-    let mv = document.querySelector("#map_view");
-    let view = mv.options[mv.selectedIndex].value;
+    let mv = document.querySelector("#map_view").getElementsByTagName("input");
+
+    let view = 0;
+    for (let i = 0; i < mv.length; i++) {
+        if (mv[i].checked) {
+            view = mv[i].value;
+        }
+    }
 
     if (region == '전체') {
         mymap.setView(regions[region], 11);
@@ -376,14 +390,6 @@ function updateMap(option) {
     mymap.eachLayer(function(layer) {
         if (layer.options.className == "value") mymap.removeLayer(layer);
     });
-
-    /*
-    if (mode == "normal") {
-        setMap(aggregatedDataForMap, region, view);
-    } else if (mode == "flow") {
-        updateMode(mode);
-    }
-    */
 
     setMap(aggregatedDataForMap, region, view);
 

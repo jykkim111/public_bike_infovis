@@ -51,18 +51,17 @@ function setSlider(slider_mode, min_val, max_val) {
         });
 
         let background_class = document.getElementsByClassName('noUi-base');
-        for(let i=0; i<background_class.length; i++){
-            background_class[i].style.background = "linear-gradient(90deg, rgba("+slider_color[0][0]+","+slider_color[0][1]+","+slider_color[0][2]+",1)," + 
-                                    "rgba(" +slider_color[1][0]+","+slider_color[1][1]+","+slider_color[1][2]+ ",1)," +
-                                    "rgba(" +slider_color[2][0]+","+slider_color[2][1]+","+slider_color[2][2]+ ",1))";
+        for (let i = 0; i < background_class.length; i++) {
+            background_class[i].style.background = "linear-gradient(90deg, rgba(" + slider_color[0][0] + "," + slider_color[0][1] + "," + slider_color[0][2] + ",1)," +
+                "rgba(" + slider_color[1][0] + "," + slider_color[1][1] + "," + slider_color[1][2] + ",1)," +
+                "rgba(" + slider_color[2][0] + "," + slider_color[2][1] + "," + slider_color[2][2] + ",1))";
         }
 
         slider.noUiSlider.on('change', function(values, _, _, _, positions) {
             console.log("slider: ", values); // TODO: slider 값에 따라 지도 view update 범위 list 형태로 나옴 [min, max]
-            updateBySlider(0, values);
+            updateBySlider(1, values);
         });
-    } 
-    else if (slider_mode == 0) {
+    } else if (slider_mode == 0) {
 
         if (slider.noUiSlider != undefined) {
             slider.noUiSlider.destroy();
@@ -94,14 +93,14 @@ function setSlider(slider_mode, min_val, max_val) {
         });
 
         let background_class = document.getElementsByClassName('noUi-base');
-        for(let i=0; i<background_class.length; i++){
-            background_class[i].style.background = "linear-gradient(90deg, rgba("+slider_color_all[1][0]+","+slider_color_all[1][1]+","+slider_color_all[1][2]+",1)," + 
-            "rgba(" +slider_color_all[0][0]+","+slider_color_all[0][1]+","+slider_color_all[0][2]+ ",1))";
+        for (let i = 0; i < background_class.length; i++) {
+            background_class[i].style.background = "linear-gradient(90deg, rgba(" + slider_color_all[1][0] + "," + slider_color_all[1][1] + "," + slider_color_all[1][2] + ",1)," +
+                "rgba(" + slider_color_all[0][0] + "," + slider_color_all[0][1] + "," + slider_color_all[0][2] + ",1))";
         }
 
         slider.noUiSlider.on('change', function(values, _, _, _, positions) {
             console.log("slider1: ", values); // TODO: slider 값에 따라 지도 view update 범위 list 형태로 나옴 [min, max]
-            updateBySlider(1, values);
+            updateBySlider(0, values);
         });
     }
 }
