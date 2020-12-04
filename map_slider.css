@@ -23,11 +23,3 @@
 .noUi-background{
     background: linear-gradient(90deg, rgba(224,58,60,0) 0%, rgba(0,157,220,0) 100%);
 }
-
-#slider_1 .noUi-base {
-    background: linear-gradient(90deg, rgba(224,58,60,1), rgba(244,188,189,1));
-}
-
-#slider_2 .noUi-base {
-    background: linear-gradient(90deg,rgba(158,218,242,1), rgba(0,157,220,1));
-}
