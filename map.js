@@ -85,7 +85,7 @@ async function setMap(rent_data, region, view) {
         let temp_val;
 
         if (view == 0) {
-            temp_val = d["rented"] - d["returned"];
+            temp_val = d["rented"] + d["returned"];
 
             if (temp_val >= 0) {
                 circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
@@ -97,7 +97,7 @@ async function setMap(rent_data, region, view) {
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
         } else if (view == 1) {
             if (d["rented"] >= d["returned"]) {
-                temp_val = d["rented"];
+                //temp_val = d["rented"];
                 circle_color = pickHex(slider_1_color[1], slider_1_color[0], Math.abs(temp_val) / total_max);
                 //circle_color = "red";
             } else {
@@ -370,9 +370,14 @@ function updateMap(option) {
     // TODO: 선택한 지역에 따라서 지도 Viewing 위치 변경
     let mr = document.querySelector("#map_region");
     let region = mr.options[mr.selectedIndex].value;
-    console.log(region);
-    let mv = document.querySelector("#map_view");
-    let view = mv.options[mv.selectedIndex].value;
+    let mv = document.querySelector("#map_view").getElementsByTagName("input");
+
+    let view = 0;
+    for (let i = 0; i < mv.length; i++) {
+        if (mv[i].checked) {
+            view = mv[i].value;
+        }
+    }
 
     if (region == '전체') {
         mymap.setView(regions[region], 11);
@@ -383,14 +388,6 @@ function updateMap(option) {
     mymap.eachLayer(function(layer) {
         if (layer.options.className == "value") mymap.removeLayer(layer);
     });
-
-    /*
-    if (mode == "normal") {
-        setMap(aggregatedDataForMap, region, view);
-    } else if (mode == "flow") {
-        updateMode(mode);
-    }
-    */
 
     setMap(aggregatedDataForMap, region, view);
 
