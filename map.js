@@ -65,8 +65,8 @@ async function setMap(rent_data, region, view) {
     console.log("min/max returned: ", min_return, max_return);
     console.log("min/max diff: ", min_diff, max_diff);
 
-    let total_max = Math.max(max_rent, max_return);
-    let total_min = Math.min(min_rent, min_return);
+    let total_max = max_rent + max_return;
+    let total_min = min_rent + min_return;
 
     // circle size = [radius_interval, (radius_interval + 1) * binning]
     let radius_interval = 10;
@@ -84,26 +84,19 @@ async function setMap(rent_data, region, view) {
         let circle_color;
         let temp_val;
 
-        if (view == 0) {
-            temp_val = d["rented"] + d["returned"];
+        if (view == 0) { // diff
+            temp_val = d["rented"] - d["returned"];
 
             if (temp_val >= 0) {
                 circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
             } else {
                 circle_color = pickHex(slider_color[2], slider_color[1], Math.abs(temp_val) / max_diff);
-                //circle_color = "blue";
             }
 
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
-        } else if (view == 1) {
-            if (d["rented"] >= d["returned"]) {
-                //temp_val = d["rented"];
-                circle_color = pickHex(slider_1_color[1], slider_1_color[0], Math.abs(temp_val) / total_max);
-                //circle_color = "red";
-            } else {
-                temp_val = d["returned"];
-                circle_color = pickHex(slider_2_color[1], slider_2_color[0], Math.abs(temp_val) / total_max);
-            }
+        } else if (view == 1) { // all
+            temp_val = d["rented"] + d["returned"];
+            circle_color = pickHex(slider_color_all[1], slider_color_all[0], Math.abs(temp_val) / total_max);
             circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / binning) + 1) * radius_interval
         }
         let circle = L.circle([d["위도"], d["경도"]], {
@@ -157,8 +150,8 @@ function updateBySlider(mode) {
 
 
 
-    let slider1_value = slider_1.noUiSlider.get();
-    let slider2_value = slider_2.noUiSlider.get();
+    let slider1_value = slider.noUiSlider.get();
+    let slider2_value = slider.noUiSlider.get();
     console.log(slider1_value);
     console.log(slider2_value);
     //console.log(aggregatedDataForMap);
@@ -202,8 +195,8 @@ function updateBySlider(mode) {
                 }
             } else {
 
-                let slider1_value = slider_1.noUiSlider.get();
-                let slider2_value = slider_2.noUiSlider.get();
+                let slider1_value = slider.noUiSlider.get();
+                let slider2_value = slider.noUiSlider.get();
                 let min1_thresh = slider1_value[0];
                 let max1_thresh = slider1_value[1];
                 let min2_thresh = slider2_value[0];
