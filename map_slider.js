@@ -16,7 +16,7 @@ let slider = document.getElementById('slider');
 
 function setSlider(slider_mode, min_val, max_val) {
     //===============================
-    // int slider_mode: 0: all, 1: diff
+    // int slider_mode: 0: 총 이용량 1: diff
     // int min_val: 대여량, 반납량 합쳐서 min 값 (mode 1에서는 필요x)
     // int max_val: 대여량, 반납량 합쳐서 max 값
     //===============================

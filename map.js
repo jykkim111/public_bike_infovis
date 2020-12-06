@@ -9,6 +9,7 @@ async function setMap(rent_data, region, view) {
     //=========================
     //console.log(rent_data);
 
+
     let gangnam_bike_stations = [];
 
     let max_rent = 0,
@@ -88,9 +89,9 @@ async function setMap(rent_data, region, view) {
             temp_val = d["returned"] - d["rented"];
 
             if (temp_val >= 0) {
-                circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
-            } else {
                 circle_color = pickHex(slider_color[2], slider_color[1], Math.abs(temp_val) / max_diff);
+            } else {
+                circle_color = pickHex(slider_color[0], slider_color[1], Math.abs(temp_val) / max_diff);
             }
 
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
@@ -107,6 +108,8 @@ async function setMap(rent_data, region, view) {
                 radius: circle_radius,
                 className: "value",
                 id: d["대여소번호"].toString(),
+                name: d["보관소(대여소)명"],
+                value: temp_val
             })
             .bindTooltip("[" + d["대여소번호"] + "] " + d["보관소(대여소)명"] + "(값: " + temp_val + ")", {
                 permanent: false,
@@ -132,7 +135,12 @@ async function setMap(rent_data, region, view) {
                     });
                 } else {
                     selectedStationNum = event.target.options.id;
-                    circleBackFromGreen(circle_color[0], circle_color[1], circle_color[2]);
+                    if (checkForGreenCircle()) {
+                        circleBackFromGreen(saved_color);
+                        saved_color = [circle_color[0], circle_color[1], circle_color[2]];
+                    } else {
+                        saved_color = [circle_color[0], circle_color[1], circle_color[2]];
+                    }
                     updateLineBarChart();
                     event.target.setStyle({
                         color: "green",
@@ -142,15 +150,28 @@ async function setMap(rent_data, region, view) {
                 }
             });
     });
+
+    //removed_layer = [];
+}
+
+function checkForGreenCircle() {
+    let check_for_green = false;
+    mymap.eachLayer(function(layer) {
+        if (layer.options.color == 'green') {
+            check_for_green = true;
+        }
+    });
+    return check_for_green;
 }
 
 
-function circleBackFromGreen(color1, color2, color3) {
+
+function circleBackFromGreen(saved_color) {
     mymap.eachLayer(function(layer) {
         if (layer.options.color == 'green') {
             layer.setStyle({
-                color: d3.rgb(color1, color2, color3),
-                fillColor: d3.rgb(color1, color2, color3)
+                color: d3.rgb(saved_color[0], saved_color[1], saved_color[2]),
+                fillColor: d3.rgb(saved_color[0], saved_color[1], saved_color[2])
             });
         }
     });
@@ -158,79 +179,29 @@ function circleBackFromGreen(color1, color2, color3) {
 }
 
 
+
+let removed_layer = [];
+
 function updateBySlider(mode) {
+    let slider_value = slider.noUiSlider.get();
+    let min_thresh = slider_value[0];
+    let max_thresh = slider_value[1];
 
-
-
-    let slider1_value = slider.noUiSlider.get();
-    console.log(slider1_value);
-    //console.log(aggregatedDataForMap);
 
     mymap.eachLayer(function(layer) {
-        let station_num = layer.options.id;
-        if (station_num == undefined || station_num == "") {
-            return;
-        } else {
-            /*
-              let numLength = station_num.length;
-              if (numLength != 5) {
-                  let zeros = 5 - numLength;
-                  for (let i = 0; i < zeros; i++) {
-                      station_num = "0".concat(station_num);
-                  }
-              }
-              */
-            let rented = 0;
-            let returned = 0;
-            if (aggregatedDataForMap[station_num] == undefined) {
-                return;
-            } else {
-                rented = aggregatedDataForMap[station_num].rented;
-                returned = aggregatedDataForMap[station_num].returned;
-            }
+        if (layer.options.value < min_thresh || layer.options.value > max_thresh) {
 
-            if (mode == 0) {
-                let total = returned + rented;
-                let slider_value = slider.noUiSlider.get();
-                let min_thresh = slider_value[0];
-                let max_thresh = slider_value[1];
-                if (total < min_thresh || total > max_thresh) {
-                    layer.setStyle({
-                        fillOpacity: 0.0
-                    });
-                } else {
-                    layer.setStyle({
-                        fillOpacity: 0.8
-                    });
-                }
-            } else {
-
-                let slider1_value = slider.noUiSlider.get();
-
-                let min1_thresh = slider1_value[0];
-                let max1_thresh = slider1_value[1];
-
-                if (rented < min1_thresh || rented > max1_thresh) {
-                    layer.setStyle({
-                        fillOpacity: 0.0
-                    });
-                } else {
-                    if (returned < min1_thresh || returned > max1_thresh) {
-                        layer.setStyle({
-                            fillOpacity: 0.0
-                        });
-                    } else {
-                        layer.setStyle({
-                            fillOpacity: 0.8
-                        });
-                    }
-                }
-            }
-
-
-
-
+            removed_layer.push(layer);
+            layer.remove();
         }
+        removed_layer.forEach(function(layer) {
+            if (layer.options.value >= min_thresh && layer.options.value <= max_thresh) {
+                layer.addTo(mymap);
+                let index = removed_layer.indexOf(layer);
+                removed_layer.splice(index, 1);
+            }
+
+        });
     });
 }
 
@@ -392,5 +363,6 @@ function updateMap(option) {
     });
 
     setMap(aggregatedDataForMap, region, view);
+    removed_layer = [];
 
 }
