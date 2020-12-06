@@ -21,8 +21,8 @@ async function setMap(rent_data, region, view) {
 
     for (let i = 0; i < station_data.length; i++) {
         if (region == "전체" || station_data[i]["자치구"] == region) {
-            station_data[i]["rented"] = 10;
-            station_data[i]["returned"] = 10;
+            station_data[i]["rented"] = 0;
+            station_data[i]["returned"] = 0;
 
             if (rent_data != undefined) {
                 if (rent_data[station_data[i]["대여소번호"]] != undefined) {
@@ -128,10 +128,17 @@ async function setMap(rent_data, region, view) {
             })
             .on("mouseup", (event) => {
                 if (event.target.options.color == "green") {
+                    /*
+                      event.target.setStyle({
+                          color: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
+                          fillColor: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
+                          weight: 0,
+                      });
+                      */
                     event.target.setStyle({
-                        color: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
-                        fillColor: d3.rgb(circle_color[0], circle_color[1], circle_color[2]),
-                        weight: 0,
+                        color: "green",
+                        fillColor: "green",
+                        weight: 3,
                     });
                 } else {
                     selectedStationNum = event.target.options.id;
@@ -151,7 +158,6 @@ async function setMap(rent_data, region, view) {
             });
     });
 
-    //removed_layer = [];
 }
 
 function checkForGreenCircle() {
