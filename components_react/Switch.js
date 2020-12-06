@@ -12,17 +12,19 @@ function SwitchLabels() {
   };
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={state}
-          onChange={handleChange}
-          name="checked"
-          color="primary"
-        />
-      }
-      label="강수량 정보"
-    />
+    <div style={{ paddingLeft: 20, display: "flex", minHeight: 70 }}>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={state}
+            onChange={handleChange}
+            name="checked"
+            color="primary"
+          />
+        }
+        label="강수량 정보"
+      />
+    </div>
   );
 }
 

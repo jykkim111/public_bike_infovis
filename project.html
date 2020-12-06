@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 
 <style>
-    #map {
-        width: 800px;
-        height: 500px;
-        display: block;
-        margin-top: 10px;
-    }
-    
-    #container {
-        display: -webkit-flex;
-        -webkit-flex-direction: column;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    div.row {
-        min-width: 1800px;
-        display: -webkit-flex;
-        -webkit-flex-direction: row;
-        flex-direction: row;
-    }
-    
-    #map-slider {
-        display: flex
-    }
-    
-    #slider{
-        width: 800px;
-        margin-top: 30px;
-    }
-    
-    #linechart {
-        margin-left: 20px;
-        margin-bottom: 40px;
-    }
+  #map {
+    width: 800px;
+    height: 500px;
+    display: block;
+    margin-top: 10px;
+  }
+
+  #container {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+  }
+
+  div.row {
+    min-width: 1800px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+  }
+
+  #map-slider {
+    display: flex;
+  }
+
+  #slider {
+    width: 800px;
+    margin-top: 30px;
+  }
+
+  #linechart {
+    margin-left: 20px;
+    margin-bottom: 40px;
+  }
 </style>
 
 <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
-    <link href="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="map_slider.css">
-    <script src="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.js"></script>
+  <meta charset="utf-8" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""
+  />
+  <link
+    href="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.min.css"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" type="text/css" href="map_slider.css" />
+  <script src="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.js"></script>
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  />
 
-    <link rel="stylesheet" type="text/css" href="toggle-radios.css" />
-    <title>Project</title>
+  <link rel="stylesheet" type="text/css" href="toggle-radios.css" />
+  <title>Project</title>
 </head>
 
 <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -65,61 +79,79 @@
 <script src="https://d3js.org/d3-drag.v2.min.js"></script>
 <script src="https://d3js.org/d3-brush.v2.min.js"></script>
 
-<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-<script lang="javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script
+  src="https://unpkg.com/react@17/umd/react.development.js"
+  crossorigin
+></script>
+<script
+  src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+  crossorigin
+></script>
+<script
+  src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""
+></script>
+<script
+  lang="javascript"
+  src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"
+></script>
 <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-<script crossorigin src="https://unpkg.com/@material-ui/core/umd/material-ui.development.js"></script>
+<script
+  crossorigin
+  src="https://unpkg.com/@material-ui/core/umd/material-ui.development.js"
+></script>
 
 <body>
-    <div id="container">
-        <div class="row">
-            <div style="min-width: 300px">
-                <div id="Switch"></div>
-                <div id="RangeSlider"></div>
-            </div>
-            <div id="linechart">
-                <div id="DateAndTimePickers"></div>
-            </div>
-        </div>
-        <div class="row">
-            <div>
-                <div class="map_options">
-                    <select name="opt" id="map_region" onchange="updateMap('region')"></select>
-                    <div class="toggle-radio" id="map_view" onchange="updateMap('view')">
-                        <input type="radio" name="mode" id="mode1" value="0" checked>
-                        <label for="mode1">총 이용량</label>
-
-                        <input type="radio" name="mode" id="mode2" value="1">
-                        <label for="mode2">반납/대여 DIFF</label>
-                    </div>
-                </div>
-                <div id="map"></div>
-                <div id="map-slider">
-                    <div id="slider"></div>
-                </div>
-            </div>
-            <div id="linebarchart"></div>
-            <div id="StationInfo"></div>
-        </div>
+  <div id="container">
+    <div id="linechart">
+      <div class="row">
+        <div id="DateAndTimePickers"></div>
+        <div id="Switch"></div>
+        <div id="RangeSlider"></div>
+      </div>
     </div>
+    <div class="row">
+      <div>
+        <div class="map_options">
+          <select
+            name="opt"
+            id="map_region"
+            onchange="updateMap('region')"
+          ></select>
+          <div class="toggle-radio" id="map_view" onchange="updateMap('view')">
+            <input type="radio" name="mode" id="mode1" value="0" checked />
+            <label for="mode1">총 이용량</label>
 
-    <script>
-        let aggregatedDataForMap;
-        let startTime, endTime;
-        let startTime_detailedview, endTime_detailedview;
-        let selectedStationNum;
-    </script>
+            <input type="radio" name="mode" id="mode2" value="1" />
+            <label for="mode2">반납/대여 DIFF</label>
+          </div>
+        </div>
+        <div id="map"></div>
+        <div id="map-slider">
+          <div id="slider"></div>
+        </div>
+      </div>
+      <div id="linebarchart"></div>
+      <div id="StationInfo"></div>
+    </div>
+  </div>
 
-    <script src="overview.js"></script>
-    <script src="map_slider.js"></script>
-    <script src="map.js"></script>
-    <script src="detailedview.js"></script>
-    <script src="components_react/RangeSlider.js" type="text/babel"></script>
-    <script src="components_react/Switch.js" type="text/babel"></script>
-    <script src="components_react/DatePicker.js" type="text/babel"></script>
-    <script src="components_react/StationInfo.js" type="text/babel"></script>
+  <script>
+    let aggregatedDataForMap;
+    let startTime, endTime;
+    let startTime_detailedview, endTime_detailedview;
+    let selectedStationNum;
+  </script>
+
+  <script src="overview.js"></script>
+  <script src="map_slider.js"></script>
+  <script src="map.js"></script>
+  <script src="detailedview.js"></script>
+  <script src="components_react/RangeSlider.js" type="text/babel"></script>
+  <script src="components_react/Switch.js" type="text/babel"></script>
+  <script src="components_react/DatePicker.js" type="text/babel"></script>
+  <script src="components_react/StationInfo.js" type="text/babel"></script>
 </body>

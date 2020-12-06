@@ -46,7 +46,7 @@ let selectedTimeInterval = [0, 24 * millisecondsPerHour];
 //let aggregatedDataForMap;
 //let startTime, endTime;
 
-const lineChartWidth = 1530;
+const lineChartWidth = 1730;
 const lineChartHeight = 200;
 const flowChartWidth = 800;
 const flowChartHeight = 500;
