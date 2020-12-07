@@ -7,8 +7,8 @@ slider_color = [
     [0, 157, 220]
 ]
 slider_color_all = [
-    [143, 141, 141],
-    [255, 255, 255]
+    [255, 255, 255],
+    [143, 141, 141]
 ]
 
 let slider = document.getElementById('slider');
@@ -84,7 +84,6 @@ function setSlider(slider_mode, min_val, max_val) {
                 'min': min_val,
                 'max': max_val
             },
-            direction: 'rtl',
             pips: {
                 mode: 'positions',
                 values: [0, 25, 50, 75, 100],

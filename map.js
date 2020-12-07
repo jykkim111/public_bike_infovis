@@ -97,7 +97,7 @@ async function setMap(rent_data, region, view) {
             circle_radius = ((Math.abs(temp_val) - min_diff) / Math.max(2, (max_diff - min_diff) / binning) + 1) * radius_interval;
         } else if (view == 0) { // all
             temp_val = d["rented"] + d["returned"];
-            circle_color = pickHex(slider_color_all[1], slider_color_all[0], Math.abs(temp_val) / total_max);
+            circle_color = pickHex(slider_color_all[0], slider_color_all[1], Math.abs(temp_val) / total_max);
             circle_radius = ((temp_val - total_min) / Math.max(2, (total_max - total_min) / binning) + 1) * radius_interval
         }
         let circle = L.circle([d["위도"], d["경도"]], {
