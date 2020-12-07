@@ -12,7 +12,7 @@ const {
 
 const useStyles = makeStyles({
   root: {
-    width: 250,
+    paddingLeft: 20,
   },
 });
 
@@ -40,7 +40,7 @@ function RangeSlider() {
   };
 
   return (
-    <div className={classes.root}>
+    <div style={{ display: "flex", flexDirection: "row", minHeight: 70 }}>
       <FormControlLabel
         control={
           <Switch
@@ -53,7 +53,7 @@ function RangeSlider() {
         label="시간대 필터"
       />
       <Collapse in={state}>
-        <div>
+        <div style={{ paddingLeft: 20 }}>
           <Typography id="range-slider" gutterBottom>
             {`시간 범위 ` +
               (state ? `(${value.map((v) => valuetext(v)).join("~")})` : "")}
