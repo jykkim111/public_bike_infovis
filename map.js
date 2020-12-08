@@ -79,6 +79,7 @@ async function setMap(rent_data, region, view) {
         setSlider(1, 0, max_diff);
     }
 
+    let currentCircles = [];
 
     gangnam_bike_stations.forEach(function(d) {
         let circle_radius;
@@ -115,7 +116,7 @@ async function setMap(rent_data, region, view) {
                 permanent: false,
                 direction: "right",
             })
-            .addTo(mymap)
+            //.addTo(mymap)
             .on("mouseover", (event) => {
                 event.target.setStyle({
                     weight: 3,
@@ -156,7 +157,33 @@ async function setMap(rent_data, region, view) {
                     });
                 }
             });
+
+        currentCircles.push(circle);
     });
+
+    currentCircles.sort(function(a, b) {
+        if (a.getRadius() > b.getRadius()) {
+            return 1;
+        }
+        if (a.getRadius() < b.getRadius()) {
+            return -1;
+        }
+
+        return 0;
+    });
+
+    currentCircles.forEach(function(circles) {
+        circles.addTo(mymap);
+    })
+
+    mymap.eachLayer(function(layer) {
+        if (layer instanceof L.Circle) {
+            layer.bringToBack();
+        }
+    })
+
+
+
 
 }
 
