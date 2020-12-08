@@ -43,6 +43,11 @@
     height: 5px;
 }
 
+.noUi-horizontal .noUi-handle-lower .noUi-tooltip {
+    top: initial;
+    bottom: -32px;
+  }
+
 #slider .noUi-base {
     background: linear-gradient(90deg, rgba(224,58,60,1), rgba(255,230,255,1), rgba(0,157,220,1));
 }
