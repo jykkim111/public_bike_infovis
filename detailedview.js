@@ -124,6 +124,7 @@ function updateLineBarChart() {
   ReactDOM.render(e(StationInfo), document.querySelector("#StationInfo"));
 
   updateLineBarChartAxes(selectedStationNum);
+  d3.select("#colorlabel").style("opacity", 1);
   lineBarChartXAxes.call(d3.axisBottom(lineBarChartX));
 
   lineBarChartYAxes.call(d3.axisLeft(lineBarChartY));
