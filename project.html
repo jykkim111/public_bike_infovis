@@ -22,18 +22,33 @@
     flex-direction: row;
   }
 
+  div.row1 {
+    min-width: 0px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+  }
+
   #map-slider {
     display: flex;
   }
 
+  #반납-대여 {
+    margin-left: 335px;
+  }
+
+  #과잉 {
+    margin-left: 335px;
+  }
+
   #slider {
     width: 800px;
-    margin-top: 30px;
+    margin-top: 5px;
   }
 
   #linechart {
     margin-left: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
   }
 </style>
 
@@ -130,6 +145,12 @@
           </div>
         </div>
         <div id="map"></div>
+        <div class="row1">
+          <div id="부족">부족</div>
+          <div id="반납-대여">반납-대여</div>
+          <div id="과잉">과잉</div>
+        </div>
+          
         <div id="map-slider">
           <div id="slider"></div>
         </div>

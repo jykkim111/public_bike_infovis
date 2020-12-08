@@ -377,12 +377,26 @@ function updateMap(option) {
     let mr = document.querySelector("#map_region");
     let region = mr.options[mr.selectedIndex].value;
     let mv = document.querySelector("#map_view").getElementsByTagName("input");
+    let sliderpip1 = document.getElementById("부족");
+    let sliderpip2 = document.getElementById("반납-대여");
+    let sliderpip3 = document.getElementById("과잉");
+
 
     let view = 0;
     for (let i = 0; i < mv.length; i++) {
         if (mv[i].checked) {
             view = mv[i].value;
         }
+    }
+
+    if(view == 1){
+        sliderpip1.style.display = "block";
+        sliderpip2.style.display = "block";
+        sliderpip3.style.display = "block";
+    }else{
+        sliderpip1.style.display = "none";
+        sliderpip2.style.display = "none";
+        sliderpip3.style.display = "none";
     }
 
     if (region == '전체') {
