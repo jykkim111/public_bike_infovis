@@ -23,13 +23,43 @@ function StationInfo() {
 
   return (
     <div className={classes.root}>
-      <Typography>{`대여소 번호: ${selectedStationNum}`}</Typography>
-      <Typography>{`대여소 이름: ${stationData.name}`}</Typography>
-      <Typography>{`대여소 주소: ${stationData.address}`}</Typography>
-      <Typography>{`총 대여 대수: ${stationData.rented}`}</Typography>
-      <Typography>{`총 반납 대수: ${stationData.returned}`}</Typography>
-      <Typography>{`합: ${stationData.total}`}</Typography>
-      <Typography>{`시간 단위: ${stationData.timeUnit}`}</Typography>
+      <Typography>
+        <b>{`대여소 번호: `}</b>
+        {`${selectedStationNum}`}
+      </Typography>
+      <Typography>
+        <b>{`대여소 이름: `}</b>
+        {`${stationData.name}`}
+      </Typography>
+      <Typography>
+        <b>{`대여소 주소: `}</b>
+        {`${stationData.address}`}
+      </Typography>
+      <Typography>
+        <b>{`총 대여 대수: `}</b>
+        {`${stationData.rented}`}
+      </Typography>
+      <Typography>
+        <b>{`총 반납 대수: `}</b>
+        {`${stationData.returned}`}
+      </Typography>
+      <Typography>
+        <b>{`불균형 정도`}</b>
+        {`(|총 반납량 - 총 대여량|): `}
+        <font
+          color={
+            stationData.total > 0
+              ? "royalblue"
+              : stationData.total == 0
+              ? "black"
+              : "red"
+          }
+        >{`${Math.abs(stationData.total)}`}</font>
+      </Typography>
+      <Typography>
+        <b>{`시간 단위:`}</b>
+        {` ${stationData.timeUnit}`}
+      </Typography>
     </div>
   );
 }

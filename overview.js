@@ -12,7 +12,7 @@ const aggregateTimePerMilliseconds = 1000 * 900; // 15분 단위로 모음
 const aggregateTimePerMilliseconds_weather = 1000 * 3600;
 let aggregateTimePerMilliseconds_detailedview = aggregateTimePerMilliseconds;
 let lineChartXDomain;
-let selected_property = "rented";
+let selected_property = (d) => d.rented + d.returned;
 let switchState = false;
 let defaultColor = "#ffffff";
 const millisecondsPerDay = 1000 * 24 * 60 * 60;
@@ -393,7 +393,7 @@ function initLineChartAxes() {
 
   lineChartY = d3
     .scaleLinear()
-    .domain(d3.extent(aggregatedDataByTime, (d) => d[1][selected_property]))
+    .domain(d3.extent(aggregatedDataByTime, (d) => selected_property(d[1])))
     .range([lineChartHeight, 0]);
 }
 
@@ -439,7 +439,7 @@ function initLineChart() {
       d3
         .line()
         .x((d) => lineChartX(+d[0]))
-        .y((d) => lineChartY(d[1][selected_property]))(data)
+        .y((d) => lineChartY(selected_property(d[1])))(data)
     );
   lineChart.on("dblclick", (event) => {
     [startTime, endTime] = lineChartXDomain;
@@ -459,7 +459,7 @@ function initLineChart() {
         d3
           .line()
           .x((d) => lineChartX(+d[0]))
-          .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
+          .y((d) => lineChartY(selected_property(d[1])))(aggregatedDataByTime)
       );
     lineChart
       .select("#rects")
@@ -525,7 +525,7 @@ function brushed({ selection, type }) {
         d3
           .line()
           .x((d) => lineChartX(+d[0]))
-          .y((d) => lineChartY(d[1][selected_property]))(aggregatedDataByTime)
+          .y((d) => lineChartY(selected_property(d[1])))(aggregatedDataByTime)
       );
     onSelectedTimeChanged();
   }
